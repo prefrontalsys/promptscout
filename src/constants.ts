@@ -8,7 +8,15 @@ export const DB_PATH = join(DATA_DIR, "better-prompt.db");
 export const MODEL_DIR = join(DATA_DIR, "models");
 
 export const MODEL_HF_URI =
-  "hf:unsloth/Ministral-3-3B-Instruct-2512-GGUF:Ministral-3-3B-Instruct-2512-Q4_K_M";
+  "hf:bartowski/Llama-3.2-3B-Instruct-GGUF:Llama-3.2-3B-Instruct-Q4_K_M.gguf";
+export const MODEL_FILE_NAME = "Llama-3.2-3B-Instruct-Q4_K_M.gguf";
+
+export const LLM_CONTEXT_SIZE = 4096;
+// CPU-only to avoid Metal OOM on constrained machines
+export const GPU_LAYERS = 0;
+
+export const TEMPLATE_PREVIEW_LENGTH = 80;
+export const HISTORY_PREVIEW_LENGTH = 60;
 
 export const DEFAULT_TEMPLATE_NAME = "default";
 export const DEFAULT_HISTORY_LIMIT = 20;
@@ -111,6 +119,15 @@ After rewriting, silently verify the output covers these dimensions (include onl
   - Do not remove existing functionality
   - Do not add console.log / debug output in final code
   - Do not leave TODO comments unless explicitly asked
+
+### Prompt Preservation
+- Begin your output with the original user prompt on the first line, prefixed with \`prompt: \`
+- Follow with a blank line, then the improved version
+- Example:
+  prompt: add error handling to login
+
+  ## Error Handling for Login
+  - Wrap the login function in...
 
 ### Length Calibration
 - Match output complexity to input complexity

@@ -1,7 +1,7 @@
 import type { Command } from "commander";
-import { processPrompt } from "../core/orchestrator.js";
+import type { Orchestrator } from "../core/orchestrator.js";
 
-export function registerRewriteCommand(program: Command): void {
+export function registerRewriteCommand(program: Command, orchestrator: Orchestrator): void {
   program
     .argument("<prompt>", "Raw prompt to rewrite")
     .option("-t, --template <name>", "Use a specific template")
@@ -17,7 +17,7 @@ export function registerRewriteCommand(program: Command): void {
         process.exit(1);
       }
 
-      await processPrompt({
+      await orchestrator.processPrompt({
         rawPrompt: prompt,
         templateName: opts.template as string | undefined,
         skipTemplate: opts.template === false,

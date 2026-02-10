@@ -1,25 +1,33 @@
+import { eq } from "drizzle-orm";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { config } from "./schema.js";
 import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY } from "../constants.js";
-import { getDatabase } from "./database.js";
 
 export class ConfigRepo {
+  constructor(private db: BetterSQLite3Database) {}
+
   get(key: string): string | undefined {
-    const db = getDatabase();
-    const row = db
-      .prepare("SELECT value FROM config WHERE key = ?")
-      .get(key) as { value: string } | undefined;
+    const row = this.db
+      .select()
+      .from(config)
+      .where(eq(config.key, key))
+      .get();
     return row?.value;
   }
 
   set(key: string, value: string): void {
-    const db = getDatabase();
-    db.prepare(
-      "INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-    ).run(key, value);
+    this.db
+      .insert(config)
+      .values({ key, value })
+      .onConflictDoUpdate({ target: config.key, set: { value } })
+      .run();
   }
 
   delete(key: string): boolean {
-    const db = getDatabase();
-    const result = db.prepare("DELETE FROM config WHERE key = ?").run(key);
+    const result = this.db
+      .delete(config)
+      .where(eq(config.key, key))
+      .run();
     return result.changes > 0;
   }
 

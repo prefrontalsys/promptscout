@@ -1,12 +1,14 @@
-import { ConfigRepo } from "../storage/config-repo.js";
+import type { ConfigRepo } from "../storage/config-repo.js";
 import { generate } from "../llm/inference.js";
 
-const configRepo = new ConfigRepo();
+export class Rewriter {
+  constructor(private configRepo: ConfigRepo) {}
 
-export async function rewritePrompt(
-  rawPrompt: string,
-  onToken?: (token: string) => void
-): Promise<string> {
-  const systemPrompt = configRepo.getSystemPrompt();
-  return generate(systemPrompt, rawPrompt, onToken);
+  async rewrite(
+    rawPrompt: string,
+    onToken?: (token: string) => void
+  ): Promise<string> {
+    const systemPrompt = this.configRepo.getSystemPrompt();
+    return generate(systemPrompt, rawPrompt, onToken);
+  }
 }

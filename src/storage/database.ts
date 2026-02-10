@@ -1,8 +1,11 @@
 import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { resolveDbPath } from "../utils/paths.js";
 import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY } from "../constants.js";
 
 let db: Database.Database | null = null;
+let drizzleDb: BetterSQLite3Database | null = null;
 
 function migrate(database: Database.Database): void {
   const version = database.pragma("user_version", { simple: true }) as number;
@@ -49,4 +52,11 @@ export function getDatabase(): Database.Database {
   db.pragma("journal_mode = WAL");
   migrate(db);
   return db;
+}
+
+export function getDrizzle(): BetterSQLite3Database {
+  if (drizzleDb) return drizzleDb;
+  const sqlite = getDatabase();
+  drizzleDb = drizzle({ client: sqlite });
+  return drizzleDb;
 }

@@ -1,53 +1,53 @@
+import { eq, desc, sql } from "drizzle-orm";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { history } from "./schema.js";
 import type { HistoryEntry } from "../types.js";
 import { DEFAULT_HISTORY_LIMIT } from "../constants.js";
-import { getDatabase } from "./database.js";
 
 export class HistoryRepo {
+  constructor(private db: BetterSQLite3Database) {}
+
   create(entry: Omit<HistoryEntry, "id" | "created_at">): HistoryEntry {
-    const db = getDatabase();
-    const result = db
-      .prepare(
-        `INSERT INTO history (directory, template_name, raw_input, improved_output, final_output)
-         VALUES (?, ?, ?, ?, ?)`
-      )
-      .run(
-        entry.directory,
-        entry.template_name,
-        entry.raw_input,
-        entry.improved_output,
-        entry.final_output
-      );
-    return db
-      .prepare("SELECT * FROM history WHERE id = ?")
-      .get(result.lastInsertRowid) as HistoryEntry;
+    const result = this.db
+      .insert(history)
+      .values({
+        directory: entry.directory,
+        template_name: entry.template_name,
+        raw_input: entry.raw_input,
+        improved_output: entry.improved_output,
+        final_output: entry.final_output,
+      })
+      .run();
+
+    return this.db
+      .select()
+      .from(history)
+      .where(eq(history.id, Number(result.lastInsertRowid)))
+      .get() as HistoryEntry;
   }
 
-  list(
-    directory?: string,
-    limit: number = DEFAULT_HISTORY_LIMIT
-  ): HistoryEntry[] {
-    const db = getDatabase();
+  list(directory?: string, limit: number = DEFAULT_HISTORY_LIMIT): HistoryEntry[] {
+    const query = this.db
+      .select()
+      .from(history)
+      .orderBy(desc(history.created_at))
+      .limit(limit);
+
     if (directory) {
-      return db
-        .prepare(
-          "SELECT * FROM history WHERE directory = ? ORDER BY created_at DESC LIMIT ?"
-        )
-        .all(directory, limit) as HistoryEntry[];
+      return query.where(eq(history.directory, directory)).all() as HistoryEntry[];
     }
-    return db
-      .prepare("SELECT * FROM history ORDER BY created_at DESC LIMIT ?")
-      .all(limit) as HistoryEntry[];
+    return query.all() as HistoryEntry[];
   }
 
   findById(id: number): HistoryEntry | undefined {
-    const db = getDatabase();
-    return db
-      .prepare("SELECT * FROM history WHERE id = ?")
-      .get(id) as HistoryEntry | undefined;
+    return this.db
+      .select()
+      .from(history)
+      .where(eq(history.id, id))
+      .get() as HistoryEntry | undefined;
   }
 
   clear(): void {
-    const db = getDatabase();
-    db.prepare("DELETE FROM history").run();
+    this.db.delete(history).run();
   }
 }

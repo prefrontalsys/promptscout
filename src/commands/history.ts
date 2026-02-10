@@ -1,10 +1,10 @@
 import type { Command } from "commander";
-import { HistoryRepo } from "../storage/history-repo.js";
+import type { HistoryRepo } from "../storage/history-repo.js";
+import { HISTORY_PREVIEW_LENGTH } from "../constants.js";
+import { truncate } from "../utils/text.js";
 import { confirm } from "@inquirer/prompts";
 
-const repo = new HistoryRepo();
-
-export function registerHistoryCommand(program: Command): void {
+export function registerHistoryCommand(program: Command, repo: HistoryRepo): void {
   const hist = program
     .command("history")
     .description("View prompt history");
@@ -28,10 +28,7 @@ export function registerHistoryCommand(program: Command): void {
 
       console.log("History:\n");
       for (const e of entries) {
-        const input =
-          e.raw_input.length > 60
-            ? e.raw_input.slice(0, 60).replace(/\n/g, " ") + "..."
-            : e.raw_input.replace(/\n/g, " ");
+        const input = truncate(e.raw_input, HISTORY_PREVIEW_LENGTH);
         const tpl = e.template_name ? ` [${e.template_name}]` : "";
         console.log(`  #${e.id}  ${e.created_at}${tpl}`);
         console.log(`    ${input}\n`);

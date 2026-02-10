@@ -1,11 +1,11 @@
 import type { Command } from "commander";
-import { TemplateRepo } from "../storage/template-repo.js";
+import type { TemplateRepo } from "../storage/template-repo.js";
+import { TEMPLATE_PREVIEW_LENGTH } from "../constants.js";
+import { truncate } from "../utils/text.js";
 import { openInEditor } from "../utils/editor.js";
 import { confirm } from "@inquirer/prompts";
 
-const repo = new TemplateRepo();
-
-export function registerTemplatesCommand(program: Command): void {
+export function registerTemplatesCommand(program: Command, repo: TemplateRepo): void {
   const tpl = program
     .command("templates")
     .description("Manage prompt templates");
@@ -21,10 +21,7 @@ export function registerTemplatesCommand(program: Command): void {
 
     console.log("Templates:\n");
     for (const t of templates) {
-      const preview =
-        t.content.length > 80
-          ? t.content.slice(0, 80).replace(/\n/g, " ") + "..."
-          : t.content.replace(/\n/g, " ");
+      const preview = truncate(t.content, TEMPLATE_PREVIEW_LENGTH);
       console.log(`  ${t.name}`);
       console.log(`    ${preview}`);
       console.log(`    Created: ${t.created_at}\n`);
@@ -60,7 +57,7 @@ export function registerTemplatesCommand(program: Command): void {
       const template = repo.findByName(name);
       if (!template) {
         console.error(`Error: Template '${name}' not found.`);
-        listAvailable();
+        listAvailable(repo);
         process.exit(1);
       }
 
@@ -82,7 +79,7 @@ export function registerTemplatesCommand(program: Command): void {
       const template = repo.findByName(name);
       if (!template) {
         console.error(`Error: Template '${name}' not found.`);
-        listAvailable();
+        listAvailable(repo);
         process.exit(1);
       }
 
@@ -108,7 +105,7 @@ export function registerTemplatesCommand(program: Command): void {
       const template = repo.findByName(name);
       if (!template) {
         console.error(`Error: Template '${name}' not found.`);
-        listAvailable();
+        listAvailable(repo);
         process.exit(1);
       }
 
@@ -116,7 +113,7 @@ export function registerTemplatesCommand(program: Command): void {
     });
 }
 
-function listAvailable(): void {
+function listAvailable(repo: TemplateRepo): void {
   const templates = repo.list();
   if (templates.length > 0) {
     console.error(`Available: ${templates.map((t) => t.name).join(", ")}`);

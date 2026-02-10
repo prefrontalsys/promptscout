@@ -1,12 +1,10 @@
 import type { Command } from "commander";
-import { ConfigRepo } from "../storage/config-repo.js";
+import type { ConfigRepo } from "../storage/config-repo.js";
 import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY } from "../constants.js";
 import { openInEditor } from "../utils/editor.js";
 import { confirm } from "@inquirer/prompts";
 
-const repo = new ConfigRepo();
-
-export function registerSystemPromptCommand(program: Command): void {
+export function registerSystemPromptCommand(program: Command, repo: ConfigRepo): void {
   const sp = program
     .command("system-prompt")
     .description("Manage the LLM system prompt");

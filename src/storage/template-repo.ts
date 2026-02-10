@@ -1,37 +1,38 @@
+import { eq, sql } from "drizzle-orm";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import { templates } from "./schema.js";
 import type { Template } from "../types.js";
-import { getDatabase } from "./database.js";
 
 export class TemplateRepo {
+  constructor(private db: BetterSQLite3Database) {}
+
   list(): Template[] {
-    const db = getDatabase();
-    return db
-      .prepare("SELECT * FROM templates ORDER BY name ASC")
+    return this.db
+      .select()
+      .from(templates)
+      .orderBy(templates.name)
       .all() as Template[];
   }
 
   findByName(name: string): Template | undefined {
-    const db = getDatabase();
-    return db
-      .prepare("SELECT * FROM templates WHERE name = ?")
-      .get(name) as Template | undefined;
+    return this.db
+      .select()
+      .from(templates)
+      .where(eq(templates.name, name))
+      .get() as Template | undefined;
   }
 
   create(name: string, content: string): Template {
-    const db = getDatabase();
-    db.prepare("INSERT INTO templates (name, content) VALUES (?, ?)").run(
-      name,
-      content
-    );
+    this.db.insert(templates).values({ name, content }).run();
     return this.findByName(name)!;
   }
 
   update(name: string, content: string): Template {
-    const db = getDatabase();
-    const result = db
-      .prepare(
-        "UPDATE templates SET content = ?, updated_at = datetime('now') WHERE name = ?"
-      )
-      .run(content, name);
+    const result = this.db
+      .update(templates)
+      .set({ content, updated_at: sql`datetime('now')` })
+      .where(eq(templates.name, name))
+      .run();
     if (result.changes === 0) {
       throw new Error(`Template '${name}' not found`);
     }
@@ -39,8 +40,10 @@ export class TemplateRepo {
   }
 
   delete(name: string): boolean {
-    const db = getDatabase();
-    const result = db.prepare("DELETE FROM templates WHERE name = ?").run(name);
+    const result = this.db
+      .delete(templates)
+      .where(eq(templates.name, name))
+      .run();
     return result.changes > 0;
   }
 }

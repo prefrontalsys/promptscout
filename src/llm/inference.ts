@@ -1,15 +1,8 @@
-import { readdirSync } from "node:fs";
 import { join } from "node:path";
+import { getLlama, LlamaChatSession } from "node-llama-cpp";
+import { MODEL_FILE_NAME, LLM_CONTEXT_SIZE, GPU_LAYERS } from "../constants.js";
 import { isModelDownloaded, getModelDir } from "./model-manager.js";
 import { downloadModel } from "./downloader.js";
-
-function findModelPath(): string {
-  const dir = getModelDir();
-  const files = readdirSync(dir);
-  const gguf = files.find((f) => f.endsWith(".gguf"));
-  if (!gguf) throw new Error("No GGUF model file found");
-  return join(dir, gguf);
-}
 
 export async function generate(
   systemPrompt: string,
@@ -20,16 +13,15 @@ export async function generate(
     await downloadModel();
   }
 
-  const modelPath = findModelPath();
+  const modelPath = join(getModelDir(), MODEL_FILE_NAME);
 
-  const { getLlama, LlamaChatSession } = await import("node-llama-cpp");
   const llama = await getLlama();
   const model = await llama.loadModel({
     modelPath,
-    gpuLayers: 0,
+    gpuLayers: GPU_LAYERS,
   });
   const context = await model.createContext({
-    contextSize: 4096,
+    contextSize: LLM_CONTEXT_SIZE,
   });
   const session = new LlamaChatSession({
     contextSequence: context.getSequence(),

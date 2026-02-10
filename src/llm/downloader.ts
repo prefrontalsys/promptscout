@@ -1,8 +1,8 @@
+import { resolveModelFile } from "node-llama-cpp";
 import { MODEL_HF_URI } from "../constants.js";
 import { getModelDir } from "./model-manager.js";
 
 export async function downloadModel(): Promise<string> {
-  const { resolveModelFile } = await import("node-llama-cpp");
   const modelDir = getModelDir();
 
   console.log("Model not found. Downloading...");

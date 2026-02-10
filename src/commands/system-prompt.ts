@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import type { ConfigRepo } from "../storage/config-repo.js";
 import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY, LLM_CONTEXT_SIZE, RESPONSE_TOKEN_RESERVE } from "../constants.js";
+import { formatTokenCount } from "../utils/text.js";
 import { openInEditor } from "../utils/editor.js";
 import { confirm } from "@inquirer/prompts";
 
@@ -20,8 +21,7 @@ export function registerSystemPromptCommand(
 
     const tokens = await countTokens(prompt);
     const maxInput = LLM_CONTEXT_SIZE - RESPONSE_TOKEN_RESERVE;
-    const remaining = maxInput - tokens;
-    console.log(`\nTokens: ${tokens} / ${maxInput} | Remaining: ${remaining}`);
+    console.log(`\n${formatTokenCount(tokens, maxInput)}`);
   });
 
   // Edit

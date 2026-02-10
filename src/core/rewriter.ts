@@ -9,8 +9,9 @@ export class Rewriter {
   async rewrite(rawPrompt: string): Promise<string> {
     const systemPrompt = this.configRepo.getSystemPrompt();
 
-    const totalTokens =
-      (await countTokens(systemPrompt)) + (await countTokens(rawPrompt));
+    const systemTokens = await countTokens(systemPrompt);
+    const promptTokens = await countTokens(rawPrompt);
+    const totalTokens = systemTokens + promptTokens;
     const maxInputTokens = LLM_CONTEXT_SIZE - RESPONSE_TOKEN_RESERVE;
 
     if (totalTokens >= maxInputTokens) {

@@ -15,6 +15,8 @@ export const MODEL_FILE_NAME = "hf_unsloth_Ministral-3-3B-Instruct-2512.MINISTRA
 export const LLM_CONTEXT_SIZE = 2560;
 // CPU-only to avoid Metal OOM on constrained machines
 export const GPU_LAYERS = 0;
+// Tokens reserved for the model's response
+export const RESPONSE_TOKEN_RESERVE = 512;
 
 export const TEMPLATE_PREVIEW_LENGTH = 80;
 export const HISTORY_PREVIEW_LENGTH = 60;

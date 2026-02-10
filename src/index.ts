@@ -11,6 +11,7 @@ import { registerRewriteCommand } from "./commands/rewrite.js";
 import { registerTemplatesCommand } from "./commands/templates.js";
 import { registerSystemPromptCommand } from "./commands/system-prompt.js";
 import { registerHistoryCommand } from "./commands/history.js";
+import { countTokens } from "./llm/tokenizer.js";
 
 const program = new Command();
 
@@ -34,7 +35,7 @@ const orchestrator = new Orchestrator(templateRepo, historyRepo, rewriter);
 // 4. Commands
 registerRewriteCommand(program, orchestrator);
 registerTemplatesCommand(program, templateRepo);
-registerSystemPromptCommand(program, configRepo);
+registerSystemPromptCommand(program, configRepo, countTokens);
 registerHistoryCommand(program, historyRepo);
 
 async function main() {

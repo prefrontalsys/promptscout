@@ -1,17 +1,27 @@
 import type { Command } from "commander";
 import type { ConfigRepo } from "../storage/config-repo.js";
-import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY } from "../constants.js";
+import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY, LLM_CONTEXT_SIZE, RESPONSE_TOKEN_RESERVE } from "../constants.js";
 import { openInEditor } from "../utils/editor.js";
 import { confirm } from "@inquirer/prompts";
 
-export function registerSystemPromptCommand(program: Command, repo: ConfigRepo): void {
+export function registerSystemPromptCommand(
+  program: Command,
+  repo: ConfigRepo,
+  countTokens: (text: string) => Promise<number>,
+): void {
   const sp = program
     .command("system-prompt")
     .description("Manage the LLM system prompt");
 
   // Show (default action)
-  sp.action(() => {
-    console.log(repo.getSystemPrompt());
+  sp.action(async () => {
+    const prompt = repo.getSystemPrompt();
+    console.log(prompt);
+
+    const tokens = await countTokens(prompt);
+    const maxInput = LLM_CONTEXT_SIZE - RESPONSE_TOKEN_RESERVE;
+    const remaining = maxInput - tokens;
+    console.log(`\nTokens: ${tokens} / ${maxInput} | Remaining: ${remaining}`);
   });
 
   // Edit

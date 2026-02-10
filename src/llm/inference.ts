@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { getLlama, LlamaChatSession } from "node-llama-cpp";
+import { getLlama, LlamaChatSession, LlamaLogLevel } from "node-llama-cpp";
 import { MODEL_FILE_NAME, LLM_CONTEXT_SIZE, GPU_LAYERS } from "../constants.js";
 import { isModelDownloaded, getModelDir } from "./model-manager.js";
 import { downloadModel } from "./downloader.js";
@@ -7,7 +7,6 @@ import { downloadModel } from "./downloader.js";
 export async function generate(
   systemPrompt: string,
   userPrompt: string,
-  onToken?: (token: string) => void
 ): Promise<string> {
   if (!isModelDownloaded()) {
     await downloadModel();
@@ -15,7 +14,7 @@ export async function generate(
 
   const modelPath = join(getModelDir(), MODEL_FILE_NAME);
 
-  const llama = await getLlama();
+  const llama = await getLlama({ logLevel: LlamaLogLevel.error });
   const model = await llama.loadModel({
     modelPath,
     gpuLayers: GPU_LAYERS,
@@ -28,9 +27,7 @@ export async function generate(
     systemPrompt,
   });
 
-  const response = await session.prompt(userPrompt, {
-    onTextChunk: onToken,
-  });
+  const response = await session.prompt(userPrompt);
 
   await context.dispose();
   await model.dispose();

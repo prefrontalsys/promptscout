@@ -4,7 +4,6 @@ import type { TemplateRepo } from "../storage/template-repo.js";
 import type { HistoryRepo } from "../storage/history-repo.js";
 import type { Rewriter } from "./rewriter.js";
 import { mergeTemplateAndPrompt } from "./merger.js";
-import { createTokenHandler, endStream } from "./streamer.js";
 import { copyToClipboard } from "../output/clipboard.js";
 import { writeOutputFile } from "../output/file-writer.js";
 
@@ -29,10 +28,9 @@ export class Orchestrator {
       noClipboard,
     } = options;
 
-    // 1. Rewrite via LLM (stream tokens unless json output)
-    const onToken = jsonOutput ? undefined : createTokenHandler();
-    const improved = await this.rewriter.rewrite(rawPrompt, onToken);
-    if (!jsonOutput) endStream();
+    // 1. Rewrite via LLM
+    const improved = await this.rewriter.rewrite(rawPrompt);
+    if (!jsonOutput) console.log(improved);
 
     // 2. Load template (unless skipped)
     let templateContent: string | null = null;

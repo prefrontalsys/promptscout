@@ -1,0 +1,6 @@
+- **DRY Principle:** Strictly enforce "Don't Repeat Yourself"; abstract shared logic, constants, and types into reusable modules rather than duplicating code.
+- **Conditional Logic:** Avoid complex or nested ternary operators; prefer explicit `if/else` blocks or early returns for clarity.
+- **No Magic Values:** Replace magic numbers and hardcoded strings with named constants or enums to improve context and maintainability.
+- **OOP Paradigm:** Apply Object-Oriented Programming principles where suitable for the architecture.
+- **Directory Structure:** Maintain a clean, logical folder hierarchy organized by concern or feature.
+- **Modularization:** Avoid monolithic files; enforce separation of concerns by splitting code into smaller, single-purpose files.

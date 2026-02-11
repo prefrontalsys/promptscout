@@ -1,3 +1,5 @@
+import ky from "ky";
+
 export interface HfModelResult {
   id: string;
   downloads: number;
@@ -9,19 +11,27 @@ export interface HfFileInfo {
   quantTag: string;
 }
 
+const HF_API = "https://huggingface.co/api";
+
 export async function searchModels(query: string): Promise<HfModelResult[]> {
-  const url = `https://huggingface.co/api/models?filter=gguf&search=${encodeURIComponent(query)}&sort=downloads&limit=20`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HuggingFace API error: ${res.status}`);
-  const data = (await res.json()) as { id: string; downloads: number }[];
+  const data = await ky
+    .get(`${HF_API}/models`, {
+      searchParams: {
+        filter: "gguf",
+        search: query,
+        sort: "downloads",
+        limit: 20,
+      },
+    })
+    .json<{ id: string; downloads: number }[]>();
+
   return data.map((m) => ({ id: m.id, downloads: m.downloads }));
 }
 
 export async function listModelFiles(repoId: string): Promise<HfFileInfo[]> {
-  const url = `https://huggingface.co/api/models/${repoId}/tree/main`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HuggingFace API error: ${res.status}`);
-  const entries = (await res.json()) as { path: string; size: number }[];
+  const entries = await ky
+    .get(`${HF_API}/models/${repoId}/tree/main`)
+    .json<{ path: string; size: number }[]>();
 
   return entries
     .filter((e) => e.path.endsWith(".gguf"))

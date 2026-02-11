@@ -23,6 +23,7 @@ export interface ConfigEntry {
 
 export interface ModelInfo {
   name: string;
+  description: string;
   hfUri: string;
   contextSize: number;
   sizeLabel: string;

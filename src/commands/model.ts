@@ -32,6 +32,7 @@ export function registerModelCommand(
     .action(async () => {
       const choices = CURATED_MODELS.map((m) => ({
         name: `${m.name}  (${m.sizeLabel})`,
+        description: m.description,
         value: m,
       }));
 

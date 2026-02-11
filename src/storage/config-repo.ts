@@ -1,12 +1,15 @@
 import { eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { config } from "./schema.js";
+import type { InferenceParams } from "../types.js";
 import {
   DEFAULT_SYSTEM_PROMPT,
+  DEFAULT_INFERENCE_PARAMS,
   SYSTEM_PROMPT_KEY,
   MODEL_HF_URI,
   MODEL_HF_URI_KEY,
   MODEL_CONTEXT_SIZE_KEY,
+  INFERENCE_PARAMS_KEY,
   LLM_CONTEXT_SIZE,
 } from "../constants.js";
 
@@ -51,13 +54,20 @@ export class ConfigRepo {
     return val ? Number(val) : LLM_CONTEXT_SIZE;
   }
 
-  setModel(hfUri: string, contextSize: number): void {
+  getInferenceParams(): InferenceParams {
+    const val = this.get(INFERENCE_PARAMS_KEY);
+    return val ? (JSON.parse(val) as InferenceParams) : DEFAULT_INFERENCE_PARAMS;
+  }
+
+  setModel(hfUri: string, contextSize: number, inferenceParams: InferenceParams): void {
     this.set(MODEL_HF_URI_KEY, hfUri);
     this.set(MODEL_CONTEXT_SIZE_KEY, String(contextSize));
+    this.set(INFERENCE_PARAMS_KEY, JSON.stringify(inferenceParams));
   }
 
   deleteModel(): void {
     this.delete(MODEL_HF_URI_KEY);
     this.delete(MODEL_CONTEXT_SIZE_KEY);
+    this.delete(INFERENCE_PARAMS_KEY);
   }
 }

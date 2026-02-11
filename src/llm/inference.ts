@@ -4,6 +4,7 @@ import {
   LlamaChatSession,
   LlamaLogLevel,
 } from "node-llama-cpp";
+import type { InferenceParams } from "../types.js";
 import { GPU_LAYERS } from "../constants.js";
 import { getModelDir } from "./model-manager.js";
 
@@ -12,9 +13,12 @@ export async function generate(
   userPrompt: string,
   hfUri: string,
   contextSize: number,
+  inferenceParams: InferenceParams,
   onToken?: (text: string) => void,
 ): Promise<string> {
-  const modelPath = await resolveModelFile(hfUri, getModelDir());
+  const modelPath = hfUri.startsWith("hf:")
+    ? await resolveModelFile(hfUri, getModelDir())
+    : hfUri;
 
   const llama = await getLlama({ logLevel: LlamaLogLevel.error });
   const model = await llama.loadModel({
@@ -29,23 +33,31 @@ export async function generate(
     systemPrompt,
   });
 
-  const response = await session.prompt(userPrompt, {
-    temperature: 0.2,
-    minP: 0.1,
-    topP: 0.7,
-    topK: 10,
-    repeatPenalty: {
-      lastTokens: 64,
-      penalty: 1.05,
-      frequencyPenalty: 0,
-      presencePenalty: 0,
-    },
-    trimWhitespaceSuffix: true,
-    onTextChunk: onToken,
-  });
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), 100_000);
 
-  await context.dispose();
-  await model.dispose();
+  let response: string;
+  try {
+    response = await session.prompt(userPrompt, {
+      temperature: inferenceParams.temperature,
+      topP: inferenceParams.topP,
+      topK: inferenceParams.topK,
+      minP: inferenceParams.minP,
+      repeatPenalty: inferenceParams.repeatPenalty,
+      trimWhitespaceSuffix: true,
+      onTextChunk: onToken,
+      signal: abort.signal,
+    });
+  } catch (err: unknown) {
+    if (abort.signal.aborted) {
+      throw new Error("LLM inference timed out after 100 seconds.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+    await context.dispose();
+    await model.dispose();
+  }
 
-  return response;
+  return response.trim();
 }

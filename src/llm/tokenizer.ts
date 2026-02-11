@@ -15,7 +15,9 @@ async function getVocabModel(hfUri: string): Promise<LlamaModel> {
     cachedUri = null;
   }
 
-  const modelPath = await resolveModelFile(hfUri, getModelDir());
+  const modelPath = hfUri.startsWith("hf:")
+    ? await resolveModelFile(hfUri, getModelDir())
+    : hfUri;
   const llama = await getLlama({ logLevel: LlamaLogLevel.error });
   vocabModel = await llama.loadModel({
     modelPath,

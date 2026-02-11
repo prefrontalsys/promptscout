@@ -4,8 +4,9 @@ set -euo pipefail
 # Read hook input from stdin
 input=$(cat)
 
-# Extract the user's prompt
+# Extract the user's prompt and project directory
 prompt=$(echo "$input" | jq -r '.prompt // empty')
+project_dir=$(echo "$input" | jq -r '.cwd // empty')
 
 if [ -z "$prompt" ]; then
   exit 0
@@ -17,7 +18,13 @@ if ! command -v better-prompt &>/dev/null; then
 fi
 
 # Run better-prompt with JSON output and no clipboard
-result=$(better-prompt "$prompt" --json-output --no-clipboard 2>/dev/null) || {
+# Build CLI arguments
+cli_args=(--json-output --no-clipboard)
+if [ -n "$project_dir" ]; then
+  cli_args+=(--project-dir "$project_dir")
+fi
+
+result=$(better-prompt "$prompt" "${cli_args[@]}" 2>/dev/null) || {
   # Graceful degradation: if CLI fails, let original prompt through
   exit 0
 }

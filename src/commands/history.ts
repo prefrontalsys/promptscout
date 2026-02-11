@@ -2,10 +2,11 @@ import type { Command } from "commander";
 import type { HistoryService } from "../core/history-service.js";
 import { confirm } from "@inquirer/prompts";
 
-export function registerHistoryCommand(program: Command, service: HistoryService): void {
-  const hist = program
-    .command("history")
-    .description("View prompt history");
+export function registerHistoryCommand(
+  program: Command,
+  service: HistoryService,
+): void {
+  const hist = program.command("history").description("View prompt history");
 
   hist
     .option("-a, --all", "Show history across all directories")
@@ -22,11 +23,9 @@ export function registerHistoryCommand(program: Command, service: HistoryService
         return;
       }
 
-      console.log("History:\n");
-      for (const e of entries) {
-        const tpl = e.templateName ? ` [${e.templateName}]` : "";
-        console.log(`  #${e.id}  ${e.createdAt}${tpl}`);
-        console.log(`    ${e.preview}\n`);
+      for (let i = 0; i < entries.length; i++) {
+        const e = entries[i];
+        console.log(`│ (${e.id}) (${e.model_name}) ${e.preview}`);
       }
     });
 
@@ -40,13 +39,14 @@ export function registerHistoryCommand(program: Command, service: HistoryService
         process.exit(1);
       }
 
-      console.log(`Entry #${entry.id}`);
-      console.log(`Date: ${entry.created_at}`);
-      console.log(`Directory: ${entry.directory}`);
-      console.log(`Template: ${entry.template_name ?? "(none)"}`);
-      console.log(`\n--- Raw Input ---\n${entry.raw_input}`);
-      console.log(`\n--- Improved Output ---\n${entry.improved_output}`);
-      console.log(`\n--- Final Output ---\n${entry.final_output}`);
+      console.log(`(${entry.id})`);
+      console.log(`│ Date:      ${entry.created_at}`);
+      console.log(`│ Directory: ${entry.directory}`);
+      console.log(`│ Model:     ${entry.model_name || "N/A"}`);
+      console.log(`│ Raw Input:`);
+      console.log(entry.raw_input);
+      console.log(`│ Improved Output:`);
+      console.log(entry.improved_output);
     });
 
   hist

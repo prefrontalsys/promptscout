@@ -1,24 +1,30 @@
-export interface Template {
-  id: number;
-  name: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface HistoryEntry {
   id: number;
   directory: string;
-  template_name: string | null;
   raw_input: string;
   improved_output: string;
   final_output: string;
+  model_name: string | null;
   created_at: string;
 }
 
 export interface ConfigEntry {
   key: string;
   value: string;
+}
+
+export interface InferenceParams {
+  temperature: number;
+  topP: number;
+  topK: number;
+  minP: number;
+  repeatPenalty: {
+    lastTokens: number;
+    penalty: number;
+    frequencyPenalty: number;
+    presencePenalty: number;
+    penalizeNewLine: boolean;
+  };
 }
 
 export interface ModelInfo {
@@ -28,14 +34,14 @@ export interface ModelInfo {
   contextSize: number;
   sizeLabel: string;
   isDefault?: boolean;
+  inferenceParams: InferenceParams;
 }
 
 export interface ProcessOptions {
   rawPrompt: string;
-  templateName?: string;
-  skipTemplate?: boolean;
   dryRun?: boolean;
   outputFile?: string;
   jsonOutput?: boolean;
   noClipboard?: boolean;
+  projectDir?: string;
 }

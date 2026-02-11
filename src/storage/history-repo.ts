@@ -12,10 +12,10 @@ export class HistoryRepo {
       .insert(history)
       .values({
         directory: entry.directory,
-        template_name: entry.template_name,
         raw_input: entry.raw_input,
         improved_output: entry.improved_output,
         final_output: entry.final_output,
+        model_name: entry.model_name,
       })
       .run();
 

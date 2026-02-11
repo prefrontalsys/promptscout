@@ -12,18 +12,9 @@ function migrate(database: Database.Database): void {
 
   if (version < 1) {
     database.exec(`
-      CREATE TABLE IF NOT EXISTS templates (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL,
-        content TEXT NOT NULL,
-        created_at TEXT DEFAULT (datetime('now')),
-        updated_at TEXT DEFAULT (datetime('now'))
-      );
-
       CREATE TABLE IF NOT EXISTS history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         directory TEXT NOT NULL,
-        template_name TEXT,
         raw_input TEXT NOT NULL,
         improved_output TEXT NOT NULL,
         final_output TEXT NOT NULL,
@@ -41,6 +32,13 @@ function migrate(database: Database.Database): void {
     database
       .prepare("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)")
       .run(SYSTEM_PROMPT_KEY, DEFAULT_SYSTEM_PROMPT);
+  }
+
+  if (version < 2) {
+    database.exec(`
+      ALTER TABLE history ADD COLUMN model_name TEXT;
+      PRAGMA user_version = 2;
+    `);
   }
 }
 

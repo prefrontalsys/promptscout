@@ -6,8 +6,8 @@ import { truncate } from "../utils/text.js";
 export interface HistoryListItem {
   id: number;
   createdAt: string;
-  templateName: string | null;
   preview: string;
+  model_name: string;
 }
 
 export class HistoryService {
@@ -19,8 +19,8 @@ export class HistoryService {
     return entries.map((e) => ({
       id: e.id,
       createdAt: e.created_at,
-      templateName: e.template_name,
       preview: truncate(e.raw_input, HISTORY_PREVIEW_LENGTH),
+      model_name: e.model_name?.split("/").pop() || "N/A",
     }));
   }
 

@@ -1,6 +1,7 @@
+import { existsSync } from "node:fs";
 import { resolveModelFile } from "node-llama-cpp";
 import type { ConfigRepo } from "../storage/config-repo.js";
-import type { ModelInfo } from "../types.js";
+import type { InferenceParams, ModelInfo } from "../types.js";
 import { CURATED_MODELS } from "../llm/models.js";
 import {
   searchModels,
@@ -9,12 +10,13 @@ import {
   type HfModelResult,
   type HfFileInfo,
 } from "../llm/hf-search.js";
-import { LLM_CONTEXT_SIZE } from "../constants.js";
+import { LLM_CONTEXT_SIZE, DEFAULT_INFERENCE_PARAMS } from "../constants.js";
 import { getModelDir } from "../llm/model-manager.js";
 
 export interface ModelStatus {
   uri: string;
   contextSize: number;
+  inferenceParams: InferenceParams;
 }
 
 export interface RepoChoice {
@@ -34,6 +36,7 @@ export class ModelService {
     return {
       uri: this.configRepo.getModelHfUri(),
       contextSize: this.configRepo.getModelContextSize(),
+      inferenceParams: this.configRepo.getInferenceParams(),
     };
   }
 
@@ -53,9 +56,13 @@ export class ModelService {
   }
 
   async selectModel(model: ModelInfo): Promise<void> {
-    this.configRepo.setModel(model.hfUri, model.contextSize);
-    console.log("Downloading model (skipped if already cached)...");
-    await resolveModelFile(model.hfUri, getModelDir());
+    this.configRepo.setModel(model.hfUri, model.contextSize, model.inferenceParams);
+    if (model.hfUri.startsWith("hf:")) {
+      console.log("Downloading model (skipped if already cached)...");
+      await resolveModelFile(model.hfUri, getModelDir());
+    } else if (!existsSync(model.hfUri)) {
+      throw new Error(`Model file not found: ${model.hfUri}`);
+    }
   }
 
   async searchRepos(query: string): Promise<RepoChoice[]> {
@@ -77,7 +84,7 @@ export class ModelService {
   async selectSearchedModel(repoId: string, quantTag: string): Promise<{ hfUri: string; contextSize: number }> {
     const hfUri = `hf:${repoId}:${quantTag}`;
     const contextSize = LLM_CONTEXT_SIZE;
-    this.configRepo.setModel(hfUri, contextSize);
+    this.configRepo.setModel(hfUri, contextSize, DEFAULT_INFERENCE_PARAMS);
     console.log("Downloading model (skipped if already cached)...");
     await resolveModelFile(hfUri, getModelDir());
     return { hfUri, contextSize };

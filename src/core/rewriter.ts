@@ -6,6 +6,10 @@ import { generate } from "../llm/inference.js";
 export class Rewriter {
   constructor(private configRepo: ConfigRepo) {}
 
+  getModelUri(): string {
+    return this.configRepo.getModelHfUri();
+  }
+
   async rewrite(
     rawPrompt: string,
     onToken?: (text: string) => void,
@@ -26,6 +30,8 @@ export class Rewriter {
       return rawPrompt;
     }
 
-    return generate(systemPrompt, rawPrompt, hfUri, contextSize, onToken);
+    const inferenceParams = this.configRepo.getInferenceParams();
+
+    return generate(systemPrompt, rawPrompt, hfUri, contextSize, inferenceParams, onToken);
   }
 }

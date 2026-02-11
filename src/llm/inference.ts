@@ -1,19 +1,20 @@
-import { join } from "node:path";
-import { getLlama, LlamaChatSession, LlamaLogLevel } from "node-llama-cpp";
-import { MODEL_FILE_NAME, LLM_CONTEXT_SIZE, GPU_LAYERS } from "../constants.js";
-import { isModelDownloaded, getModelDir } from "./model-manager.js";
-import { downloadModel } from "./downloader.js";
+import {
+  getLlama,
+  resolveModelFile,
+  LlamaChatSession,
+  LlamaLogLevel,
+} from "node-llama-cpp";
+import { GPU_LAYERS } from "../constants.js";
+import { getModelDir } from "./model-manager.js";
 
 export async function generate(
   systemPrompt: string,
   userPrompt: string,
+  hfUri: string,
+  contextSize: number,
   onToken?: (text: string) => void,
 ): Promise<string> {
-  if (!isModelDownloaded()) {
-    await downloadModel();
-  }
-
-  const modelPath = join(getModelDir(), MODEL_FILE_NAME);
+  const modelPath = await resolveModelFile(hfUri, getModelDir());
 
   const llama = await getLlama({ logLevel: LlamaLogLevel.error });
   const model = await llama.loadModel({
@@ -21,7 +22,7 @@ export async function generate(
     gpuLayers: GPU_LAYERS,
   });
   const context = await model.createContext({
-    contextSize: LLM_CONTEXT_SIZE,
+    contextSize,
   });
   const session = new LlamaChatSession({
     contextSequence: context.getSequence(),
@@ -29,13 +30,15 @@ export async function generate(
   });
 
   const response = await session.prompt(userPrompt, {
-    temperature: 0.6,
-    minP: 0.05,
-    topK: 20,
+    temperature: 0.2,
+    minP: 0.1,
+    topP: 0.7,
+    topK: 10,
     repeatPenalty: {
-      lastTokens: 48,
-      penalty: 1.2,
-      frequencyPenalty: 0.05,
+      lastTokens: 64,
+      penalty: 1.05,
+      frequencyPenalty: 0,
+      presencePenalty: 0,
     },
     trimWhitespaceSuffix: true,
     onTextChunk: onToken,

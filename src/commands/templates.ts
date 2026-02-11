@@ -1,18 +1,15 @@
 import type { Command } from "commander";
-import type { TemplateRepo } from "../storage/template-repo.js";
-import { TEMPLATE_PREVIEW_LENGTH } from "../constants.js";
-import { truncate } from "../utils/text.js";
+import type { TemplateService } from "../core/template-service.js";
 import { openInEditor } from "../utils/editor.js";
 import { confirm } from "@inquirer/prompts";
 
-export function registerTemplatesCommand(program: Command, repo: TemplateRepo): void {
+export function registerTemplatesCommand(program: Command, service: TemplateService): void {
   const tpl = program
     .command("templates")
     .description("Manage prompt templates");
 
-  // List templates (default action)
   tpl.action(() => {
-    const templates = repo.list();
+    const templates = service.list();
     if (templates.length === 0) {
       console.log("No templates found.");
       console.log('Create one with: better-prompt templates add <name>');
@@ -21,65 +18,43 @@ export function registerTemplatesCommand(program: Command, repo: TemplateRepo): 
 
     console.log("Templates:\n");
     for (const t of templates) {
-      const preview = truncate(t.content, TEMPLATE_PREVIEW_LENGTH);
       console.log(`  ${t.name}`);
-      console.log(`    ${preview}`);
-      console.log(`    Created: ${t.created_at}\n`);
+      console.log(`    ${t.preview}`);
+      console.log(`    Created: ${t.createdAt}\n`);
     }
   });
 
-  // Add
   tpl
     .command("add <name>")
     .description("Create a new template")
     .action((name: string) => {
-      const existing = repo.findByName(name);
-      if (existing) {
-        console.error(`Error: Template '${name}' already exists. Use 'edit' to modify it.`);
-        process.exit(1);
-      }
-
       const content = openInEditor("");
-      if (!content.trim()) {
-        console.error("Error: Template content cannot be empty.");
-        process.exit(1);
-      }
-
-      repo.create(name, content);
+      service.create(name, content);
       console.log(`Template '${name}' created.`);
     });
 
-  // Edit
   tpl
     .command("edit <name>")
     .description("Edit an existing template")
     .action((name: string) => {
-      const template = repo.findByName(name);
-      if (!template) {
+      const existing = service.findByName(name);
+      if (!existing) {
         console.error(`Error: Template '${name}' not found.`);
-        listAvailable(repo);
         process.exit(1);
       }
 
-      const content = openInEditor(template.content);
-      if (!content.trim()) {
-        console.error("Error: Template content cannot be empty.");
-        process.exit(1);
-      }
-
-      repo.update(name, content);
+      const content = openInEditor(existing.content);
+      service.update(name, content);
       console.log(`Template '${name}' updated.`);
     });
 
-  // Remove
   tpl
     .command("remove <name>")
     .description("Delete a template")
     .action(async (name: string) => {
-      const template = repo.findByName(name);
-      if (!template) {
+      const existing = service.findByName(name);
+      if (!existing) {
         console.error(`Error: Template '${name}' not found.`);
-        listAvailable(repo);
         process.exit(1);
       }
 
@@ -93,29 +68,15 @@ export function registerTemplatesCommand(program: Command, repo: TemplateRepo): 
         return;
       }
 
-      repo.delete(name);
+      service.delete(name);
       console.log(`Template '${name}' deleted.`);
     });
 
-  // Show
   tpl
     .command("show <name>")
     .description("Print full template content")
     .action((name: string) => {
-      const template = repo.findByName(name);
-      if (!template) {
-        console.error(`Error: Template '${name}' not found.`);
-        listAvailable(repo);
-        process.exit(1);
-      }
-
-      console.log(template.content);
+      const content = service.show(name);
+      console.log(content);
     });
-}
-
-function listAvailable(repo: TemplateRepo): void {
-  const templates = repo.list();
-  if (templates.length > 0) {
-    console.error(`Available: ${templates.map((t) => t.name).join(", ")}`);
-  }
 }

@@ -21,6 +21,13 @@ export interface ConfigEntry {
   value: string;
 }
 
+export interface ModelInfo {
+  name: string;
+  hfUri: string;
+  contextSize: number;
+  sizeLabel: string;
+}
+
 export interface ProcessOptions {
   rawPrompt: string;
   templateName?: string;

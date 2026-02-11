@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import type { ConfigRepo } from "../storage/config-repo.js";
-import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY, LLM_CONTEXT_SIZE, RESPONSE_TOKEN_RESERVE } from "../constants.js";
+import { DEFAULT_SYSTEM_PROMPT, SYSTEM_PROMPT_KEY, RESPONSE_TOKEN_RESERVE } from "../constants.js";
 import { formatTokenCount } from "../utils/text.js";
 import { openInEditor } from "../utils/editor.js";
 import { confirm } from "@inquirer/prompts";
@@ -8,7 +8,7 @@ import { confirm } from "@inquirer/prompts";
 export function registerSystemPromptCommand(
   program: Command,
   repo: ConfigRepo,
-  countTokens: (text: string) => Promise<number>,
+  countTokens: (text: string, hfUri: string) => Promise<number>,
 ): void {
   const sp = program
     .command("system-prompt")
@@ -19,8 +19,10 @@ export function registerSystemPromptCommand(
     const prompt = repo.getSystemPrompt();
     console.log(prompt);
 
-    const tokens = await countTokens(prompt);
-    const maxInput = LLM_CONTEXT_SIZE - RESPONSE_TOKEN_RESERVE;
+    const hfUri = repo.getModelHfUri();
+    const contextSize = repo.getModelContextSize();
+    const tokens = await countTokens(prompt, hfUri);
+    const maxInput = contextSize - RESPONSE_TOKEN_RESERVE;
     console.log(`\n${formatTokenCount(tokens, maxInput)}`);
   });
 

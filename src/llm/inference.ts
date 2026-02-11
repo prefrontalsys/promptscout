@@ -7,6 +7,7 @@ import { downloadModel } from "./downloader.js";
 export async function generate(
   systemPrompt: string,
   userPrompt: string,
+  onToken?: (text: string) => void,
 ): Promise<string> {
   if (!isModelDownloaded()) {
     await downloadModel();
@@ -27,7 +28,18 @@ export async function generate(
     systemPrompt,
   });
 
-  const response = await session.prompt(userPrompt);
+  const response = await session.prompt(userPrompt, {
+    temperature: 0.6,
+    minP: 0.05,
+    topK: 20,
+    repeatPenalty: {
+      lastTokens: 48,
+      penalty: 1.2,
+      frequencyPenalty: 0.05,
+    },
+    trimWhitespaceSuffix: true,
+    onTextChunk: onToken,
+  });
 
   await context.dispose();
   await model.dispose();

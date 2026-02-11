@@ -6,7 +6,10 @@ import { generate } from "../llm/inference.js";
 export class Rewriter {
   constructor(private configRepo: ConfigRepo) {}
 
-  async rewrite(rawPrompt: string): Promise<string> {
+  async rewrite(
+    rawPrompt: string,
+    onToken?: (text: string) => void,
+  ): Promise<string> {
     const systemPrompt = this.configRepo.getSystemPrompt();
 
     const systemTokens = await countTokens(systemPrompt);
@@ -21,6 +24,6 @@ export class Rewriter {
       return rawPrompt;
     }
 
-    return generate(systemPrompt, rawPrompt);
+    return generate(systemPrompt, rawPrompt, onToken);
   }
 }

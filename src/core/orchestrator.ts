@@ -1,5 +1,5 @@
 import type { ProcessOptions } from "../types.js";
-import { DEFAULT_TEMPLATE_NAME } from "../constants.js";
+import { DEFAULT_TEMPLATE_NAME, STREAMING_ENABLED } from "../constants.js";
 import type { TemplateRepo } from "../storage/template-repo.js";
 import type { HistoryRepo } from "../storage/history-repo.js";
 import type { Rewriter } from "./rewriter.js";
@@ -29,8 +29,13 @@ export class Orchestrator {
     } = options;
 
     // 1. Rewrite via LLM
-    const improved = await this.rewriter.rewrite(rawPrompt);
-    if (!jsonOutput) console.log(improved);
+    const useStreaming = STREAMING_ENABLED && !jsonOutput;
+    const onToken = useStreaming
+      ? (text: string) => process.stdout.write(text)
+      : undefined;
+    const improved = await this.rewriter.rewrite(rawPrompt, onToken);
+    if (useStreaming) process.stdout.write("\n");
+    else if (!jsonOutput) console.log(improved);
 
     // 2. Load template (unless skipped)
     let templateContent: string | null = null;

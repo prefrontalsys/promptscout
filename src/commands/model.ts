@@ -20,15 +20,21 @@ export function registerModelCommand(
     .command("select")
     .description("Select a model from the curated list")
     .action(async () => {
-      const choices = service.getCuratedModels().map((m) => ({
+      const models = service.getCuratedModels();
+      const choices = models.map((m) => ({
         name: m.label,
         description: m.description,
         value: m.model,
       }));
+      const activeModel = models.find((m) => m.active);
 
-      const chosen = await select({ message: "Select a model:", choices });
+      const chosen = await select({
+        message: "Select a model:",
+        choices,
+        default: activeModel?.model,
+      });
 
-      service.selectModel(chosen);
+      await service.selectModel(chosen);
       console.log(`Model set to: ${chosen.name}`);
       console.log(`URI: ${chosen.hfUri}`);
       console.log(`Context size: ${chosen.contextSize}`);
@@ -69,7 +75,7 @@ export function registerModelCommand(
         choices: fileChoices.map((f) => ({ name: f.label, value: f.file })),
       });
 
-      const result = service.selectSearchedModel(chosen.id, file.quantTag);
+      const result = await service.selectSearchedModel(chosen.id, file.quantTag);
       console.log(`\nModel set to: ${result.hfUri}`);
       console.log(`Context size: ${result.contextSize}`);
     });

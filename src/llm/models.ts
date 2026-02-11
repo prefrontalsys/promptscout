@@ -4,7 +4,8 @@ export const CURATED_MODELS: ModelInfo[] = [
   // --- Small (≤ 2.5 GB) ---
   {
     name: "Llama 3.2 3B Instruct (Q4_K_M)",
-    description: "Requires ~2 GB memory. Good balance of quality and speed.",
+    description: "Requires ~2 GB memory. Good balance of quality and speed. Default model.",
+    isDefault: true,
     hfUri: "hf:bartowski/Llama-3.2-3B-Instruct-GGUF:Q4_K_M",
     contextSize: 4096,
     sizeLabel: "~2.0 GB",

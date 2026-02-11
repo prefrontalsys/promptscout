@@ -1,3 +1,4 @@
+import { resolveModelFile } from "node-llama-cpp";
 import type { ConfigRepo } from "../storage/config-repo.js";
 import type { ModelInfo } from "../types.js";
 import { CURATED_MODELS } from "../llm/models.js";
@@ -9,6 +10,7 @@ import {
   type HfFileInfo,
 } from "../llm/hf-search.js";
 import { LLM_CONTEXT_SIZE } from "../constants.js";
+import { getModelDir } from "../llm/model-manager.js";
 
 export interface ModelStatus {
   uri: string;
@@ -35,16 +37,25 @@ export class ModelService {
     };
   }
 
-  getCuratedModels(): { label: string; description: string; model: ModelInfo }[] {
-    return CURATED_MODELS.map((m) => ({
-      label: `${m.name}  (${m.sizeLabel})`,
-      description: m.description,
-      model: m,
-    }));
+  getCuratedModels(): { label: string; description: string; model: ModelInfo; active: boolean }[] {
+    const currentUri = this.configRepo.getModelHfUri();
+    return CURATED_MODELS.map((m) => {
+      const active = m.hfUri === currentUri;
+      const prefix = active ? "\u2714 " : "  ";
+      const defaultTag = m.isDefault ? " (default)" : "";
+      return {
+        label: `${prefix}${m.name}  (${m.sizeLabel})${defaultTag}`,
+        description: m.description,
+        model: m,
+        active,
+      };
+    });
   }
 
-  selectModel(model: ModelInfo): void {
+  async selectModel(model: ModelInfo): Promise<void> {
     this.configRepo.setModel(model.hfUri, model.contextSize);
+    console.log("Downloading model (skipped if already cached)...");
+    await resolveModelFile(model.hfUri, getModelDir());
   }
 
   async searchRepos(query: string): Promise<RepoChoice[]> {
@@ -63,10 +74,12 @@ export class ModelService {
     }));
   }
 
-  selectSearchedModel(repoId: string, quantTag: string): { hfUri: string; contextSize: number } {
+  async selectSearchedModel(repoId: string, quantTag: string): Promise<{ hfUri: string; contextSize: number }> {
     const hfUri = `hf:${repoId}:${quantTag}`;
     const contextSize = LLM_CONTEXT_SIZE;
     this.configRepo.setModel(hfUri, contextSize);
+    console.log("Downloading model (skipped if already cached)...");
+    await resolveModelFile(hfUri, getModelDir());
     return { hfUri, contextSize };
   }
 

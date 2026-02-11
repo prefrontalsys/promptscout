@@ -27,6 +27,7 @@ export interface ModelInfo {
   hfUri: string;
   contextSize: number;
   sizeLabel: string;
+  isDefault?: boolean;
 }
 
 export interface ProcessOptions {

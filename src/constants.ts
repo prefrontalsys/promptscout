@@ -37,7 +37,9 @@ AI coding agents. Output ONLY the bullet list. NEVER add
 commentary, notes, or explanations. Stop after the last item.
 
 FORMAT:
-- ALWAYS start every line with "- " followed by a verb.
+- The FIRST line MUST be "> " followed by a one-sentence summary
+  of the overall task or problem. This is NOT a bullet item.
+- Then list action items. Each starts with "- " followed by a verb.
 - NEVER use numbered lists (1. 2. 3.). ALWAYS use "- ".
 - Group related sub-items by indenting with two spaces: "  - ".
 - No blank lines between items. No markdown headings.
@@ -46,6 +48,7 @@ FORMAT:
 Input: "add dark mode. I have PR comments please fetch them.
 use /frontend-design skill"
 Output:
+> Add dark mode support and address PR feedback.
 - Review project memory for context about dark mode.
 - Search for /frontend-design skill and use it.
 - Fetch the PR comments as requested.
@@ -54,7 +57,8 @@ Output:
 </good_example>
 
 <bad_example>
-This is WRONG because it uses numbers and drops "fetch PR comments":
+This is WRONG because it uses numbers, has no "> " summary line,
+and drops "fetch PR comments":
 1. Review project memory.
 2. Add dark mode toggle.
 3. Use /frontend-design skill.
@@ -69,6 +73,7 @@ Input: "add filtering and sorting to kanban columns
   - add filtering by type
 - show indicator on button when filters are active"
 Output:
+> Add filtering and sorting functionality to kanban columns with a popover UI.
 - Review project memory for context about kanban columns.
 - Add filtering and sorting functionality to kanban columns.
   - Add an icon button at the header of each column.
@@ -77,6 +82,20 @@ Output:
   - Add sorting options matching the list page behavior.
   - Add filtering by type.
 - Show an indicator on the button icon when any filter or sort is applied.
+- Log progress in the issue tracker.
+</good_example>
+
+<good_example>
+Input: "camera video appears 90 degrees rotated on iPhone when
+orientation lock is on. We suspect VisualCamera package.
+docs: https://example.com/orientation
+enter planning mode and investigate the related components"
+Output:
+> Fix iOS camera orientation issue where video appears 90 degrees rotated when orientation lock is enabled on iPhone.
+- Review project memory for context about the camera orientation issue.
+- Review documentation at https://example.com/orientation.
+- Enter planning mode.
+- Investigate related components that handle camera and orientation, focusing on the VisualCamera package as the suspected cause.
 - Log progress in the issue tracker.
 </good_example>
 

@@ -9,7 +9,13 @@ const GIT_TIMEOUT = 5_000;
 // Hardcoded for grep traversal performance only.
 // .git is never in .gitignore (git handles it internally).
 // node_modules is virtually always gitignored and huge.
-const PERF_EXCLUDE_FLAGS = ["--exclude-dir", ".git", "--exclude-dir", "node_modules"];
+// -I: skip binary files (images, fonts, compiled assets)
+// --exclude-dir: skip dirs that are huge and almost always irrelevant
+const BASE_GREP_FLAGS = [
+  "-I",
+  "--exclude-dir", ".git",
+  "--exclude-dir", "node_modules",
+];
 
 export function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -47,7 +53,7 @@ export function stripDirPrefix(line: string, dir: string): string {
 
 export function grepSync(args: string[], cwd: string): string {
   try {
-    return execFileSync("grep", [...PERF_EXCLUDE_FLAGS, ...args], {
+    return execFileSync("grep", [...BASE_GREP_FLAGS, ...args], {
       cwd,
       timeout: GREP_TIMEOUT,
       encoding: "utf-8",

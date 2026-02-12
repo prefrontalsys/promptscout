@@ -1,37 +1,80 @@
 import type { ConfigRepo } from "../storage/config-repo.js";
-import { RESPONSE_TOKEN_RESERVE } from "../constants.js";
-import { countTokens } from "../llm/tokenizer.js";
+import type { InferenceParams } from "../types.js";
 import { generate } from "../llm/inference.js";
+import {
+  buildToolCallingPrompt,
+  parseToolCalls,
+} from "../llm/prompts/tool-calling.js";
+import {
+  TOOL_DEFINITIONS,
+  executeToolCall,
+  loadIgnoreFilter,
+} from "../tools/codebase-tools.js";
+
+const TOOL_CALLING_PARAMS: InferenceParams = {
+  temperature: 0.6,
+  topP: 0.8,
+  topK: 20,
+  minP: 0.0,
+  repeatPenalty: {
+    lastTokens: 64,
+    penalty: 1.1,
+    frequencyPenalty: 0.0,
+    presencePenalty: 0.5,
+    penalizeNewLine: false,
+  },
+};
 
 export class Rewriter {
-  constructor(private configRepo: ConfigRepo) {}
+  constructor(private configRepo: ConfigRepo) { }
 
   getModelUri(): string {
     return this.configRepo.getModelHfUri();
   }
 
-  async rewrite(
-    rawPrompt: string,
-    onToken?: (text: string) => void,
-  ): Promise<string> {
-    const systemPrompt = this.configRepo.getSystemPrompt();
+  async rewrite(rawPrompt: string, projectDir?: string): Promise<string> {
     const hfUri = this.configRepo.getModelHfUri();
     const contextSize = this.configRepo.getModelContextSize();
+    const searchDir = projectDir ?? process.cwd();
 
-    const systemTokens = await countTokens(systemPrompt, hfUri);
-    const promptTokens = await countTokens(rawPrompt, hfUri);
-    const totalTokens = systemTokens + promptTokens;
-    const maxInputTokens = contextSize - RESPONSE_TOKEN_RESERVE;
+    const systemPrompt = buildToolCallingPrompt(TOOL_DEFINITIONS);
+    const raw = await generate(
+      systemPrompt,
+      rawPrompt,
+      hfUri,
+      contextSize,
+      TOOL_CALLING_PARAMS,
+    );
 
-    if (totalTokens >= maxInputTokens) {
-      console.error(
-        `Warning: Input (${totalTokens} tokens) exceeds context limit (${maxInputTokens}). Returning raw prompt.`,
-      );
-      return rawPrompt;
+    const calls = parseToolCalls(raw);
+    if (calls.length === 0) return rawPrompt;
+
+    const ig = loadIgnoreFilter(searchDir);
+    const results: string[] = [];
+    for (const call of calls) {
+      const result = await executeToolCall(call, searchDir, ig);
+      if (
+        result &&
+        !result.startsWith("No ") &&
+        !result.startsWith("Failed") &&
+        !result.startsWith("Unknown tool")
+      ) {
+        const paramLabel = call.arguments.url
+          ? `url: "${call.arguments.url}"`
+          : `query: "${call.arguments.query}"`;
+        results.push(`[${call.name}] ${paramLabel}\n${result}`);
+      }
     }
 
-    const inferenceParams = this.configRepo.getInferenceParams();
+    if (results.length === 0) return rawPrompt;
+    const outputs = [];
 
-    return generate(systemPrompt, rawPrompt, hfUri, contextSize, inferenceParams, onToken);
+    outputs.push(rawPrompt)
+    outputs.push("Context from codebase:")
+    outputs.push("```")
+    outputs.push(results.join("\n\n"))
+    outputs.push("```")
+
+    return outputs.join("\n\n");
   }
 }

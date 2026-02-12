@@ -27,16 +27,6 @@ export interface InferenceParams {
   };
 }
 
-export interface ModelInfo {
-  name: string;
-  description: string;
-  hfUri: string;
-  contextSize: number;
-  sizeLabel: string;
-  isDefault?: boolean;
-  inferenceParams: InferenceParams;
-}
-
 export interface ProcessOptions {
   rawPrompt: string;
   dryRun?: boolean;

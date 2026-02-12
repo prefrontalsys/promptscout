@@ -1,7 +1,9 @@
 src/
 spikes/
 docs/
+hooks/
 .trekker/
+.claude-plugin/
 .git/
 .gitignore
 tsconfig.json

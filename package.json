@@ -8,7 +8,6 @@
   },
   "files": [
     "dist",
-    "claude-plugin",
     "README.md",
     "LICENSE"
   ],

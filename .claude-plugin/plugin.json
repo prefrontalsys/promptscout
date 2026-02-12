@@ -1,0 +1,32 @@
+{
+  "name": "promptscout",
+  "description": "Enrich coding agent prompts with codebase context using a local LLM",
+  "version": "1.1.0",
+  "author": {
+    "name": "Omercan Balandi",
+    "url": "https://github.com/obsfx"
+  },
+  "repository": "https://github.com/obsfx/promptscout",
+  "license": "MIT",
+  "homepage": "https://github.com/obsfx/promptscout",
+  "keywords": [
+    "prompt-enrichment",
+    "codebase-context",
+    "local-llm",
+    "coding-agent"
+  ],
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/user-prompt-submit.sh",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

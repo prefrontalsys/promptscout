@@ -1,6 +1,5 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { InferenceParams } from "./types.js";
 
 const HOME = homedir();
 
@@ -10,7 +9,7 @@ export const MODEL_DIR = join(DATA_DIR, "models");
 
 export const MODEL_HF_URI = join(
   MODEL_DIR,
-  "Ministral-3-3B-Instruct-2512-Q8_0.gguf",
+  "Qwen3-4B-Q4_K_M.gguf",
 );
 
 // 3.5K
@@ -18,28 +17,11 @@ export const LLM_CONTEXT_SIZE = 4096;
 
 export const MODEL_HF_URI_KEY = "model_hf_uri";
 export const MODEL_CONTEXT_SIZE_KEY = "model_context_size";
-export const INFERENCE_PARAMS_KEY = "inference_params";
 // CPU-only to avoid Metal OOM on constrained machines
 export const GPU_LAYERS = 0;
 
-// Default inference params match Ministral 3B (the default model)
-export const DEFAULT_INFERENCE_PARAMS: InferenceParams = {
-  temperature: 0.4,
-  topP: 0.9,
-  topK: 40,
-  minP: 0.05,
-  repeatPenalty: {
-    lastTokens: 64,
-    penalty: 1.1,
-    frequencyPenalty: 0.05,
-    presencePenalty: 0.05,
-    penalizeNewLine: false,
-  },
-};
 // Tokens reserved for the model's response
 export const RESPONSE_TOKEN_RESERVE = 1024;
-// Stream tokens to stdout as they are generated
-export const STREAMING_ENABLED = false;
 
 export const HISTORY_PREVIEW_LENGTH = 60;
 export const DEFAULT_HISTORY_LIMIT = 20;

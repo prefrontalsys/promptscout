@@ -1,22 +1,15 @@
 import type { ProcessOptions } from "../types.js";
-import { STREAMING_ENABLED } from "../constants.js";
 import type { HistoryRepo } from "../storage/history-repo.js";
 import type { Rewriter } from "./rewriter.js";
 import { copyToClipboard } from "../output/clipboard.js";
 import { writeOutputFile } from "../output/file-writer.js";
+import ora from "ora";
 
 export class Orchestrator {
   constructor(
     private historyRepo: HistoryRepo,
     private rewriter: Rewriter,
   ) {}
-
-  private async streamingOutput(rawPrompt: string): Promise<string> {
-    const onToken = (text: string) => process.stdout.write(text);
-    const improved = await this.rewriter.rewrite(rawPrompt, onToken);
-    process.stdout.write("\n");
-    return improved;
-  }
 
   async processPrompt(options: ProcessOptions): Promise<{
     improved: string;
@@ -30,16 +23,15 @@ export class Orchestrator {
       projectDir,
     } = options;
 
-    const useStreaming = STREAMING_ENABLED && !jsonOutput;
+    const spinner = jsonOutput ? null : ora().start();
+    const onStatus = spinner
+      ? (message: string) => { spinner.text = message; }
+      : undefined;
 
-    let improved: string;
-    if (useStreaming) {
-      improved = await this.streamingOutput(rawPrompt);
-    } else {
-      improved = await this.rewriter.rewrite(rawPrompt);
-    }
+    const improved = await this.rewriter.rewrite(rawPrompt, projectDir, onStatus);
 
-    console.log("\n");
+    spinner?.stop();
+    console.log("");
 
     if (jsonOutput) {
       console.log(JSON.stringify({ improved }));

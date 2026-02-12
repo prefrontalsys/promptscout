@@ -50,7 +50,7 @@ export const TOOL_DEFINITIONS = [
             type: "string",
             description:
               "A single keyword to search for in file contents. Use concise, specific terms " +
-              "(e.g., 'camera', 'auth', 'Router'). Avoid multi-word phrases.",
+              "(e.g., 'payment', 'auth', 'Router'). Avoid multi-word phrases.",
           },
         },
         required: ["query"],
@@ -71,7 +71,7 @@ export const TOOL_DEFINITIONS = [
             type: "string",
             description:
               "A single keyword to find in source code. Use specific identifiers " +
-              "(e.g., 'handleSubmit', 'CameraView', 'fetchUser'). Case-insensitive.",
+              "(e.g., 'handleSubmit', 'fetchUser', 'createOrder'). Case-insensitive.",
           },
         },
         required: ["query"],
@@ -93,7 +93,7 @@ export const TOOL_DEFINITIONS = [
             type: "string",
             description:
               "A single keyword matching the name of a function, class, type, or other definition " +
-              "(e.g., 'Camera', 'UserService', 'parse_config'). Case-insensitive.",
+              "(e.g., 'UserService', 'parse_config', 'OrderItem'). Case-insensitive.",
           },
         },
         required: ["query"],
@@ -115,7 +115,7 @@ export const TOOL_DEFINITIONS = [
             type: "string",
             description:
               "A module name or keyword to search for in import statements " +
-              "(e.g., 'camera', 'utils', 'express'). Case-sensitive for import paths.",
+              "(e.g., 'express', 'utils', 'lodash'). Case-sensitive for import paths.",
           },
         },
         required: ["query"],
@@ -136,7 +136,7 @@ export const TOOL_DEFINITIONS = [
           query: {
             type: "string",
             description:
-              "A keyword to search in commit diffs (e.g., 'camera', 'auth'). " +
+              "A keyword to search in commit diffs (e.g., 'auth', 'upload'). " +
               "Git searches for commits where this string was added or removed.",
           },
         },

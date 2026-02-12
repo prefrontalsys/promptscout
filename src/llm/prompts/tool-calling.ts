@@ -24,11 +24,11 @@ Rules:
 
 Examples:
 
-User: "how does the auth system work in this project?"
-[{"name":"file_finder","arguments":{"query":"auth"}},{"name":"section_finder","arguments":{"query":"login"}},{"name":"definition_finder","arguments":{"query":"auth"}},{"name":"import_tracer","arguments":{"query":"auth"}}]
+User: "how does the middleware system work in this project?"
+[{"name":"file_finder","arguments":{"query":"middleware"}},{"name":"section_finder","arguments":{"query":"router"}},{"name":"definition_finder","arguments":{"query":"middleware"}},{"name":"import_tracer","arguments":{"query":"middleware"}}]
 
-User: "fix the camera rotation bug"
-[{"name":"file_finder","arguments":{"query":"camera"}},{"name":"section_finder","arguments":{"query":"rotation"}},{"name":"definition_finder","arguments":{"query":"camera"}},{"name":"git_history","arguments":{"query":"rotation"}}]
+User: "fix the websocket reconnection bug"
+[{"name":"file_finder","arguments":{"query":"websocket"}},{"name":"section_finder","arguments":{"query":"reconnect"}},{"name":"definition_finder","arguments":{"query":"websocket"}},{"name":"git_history","arguments":{"query":"reconnect"}}]
 
 User: "thanks, that works"
 []`;

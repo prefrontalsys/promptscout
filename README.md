@@ -2,7 +2,7 @@
 
 A CLI tool that enriches your coding agent prompts with codebase context using a local LLM. No API keys, no cloud. Runs on your machine.
 
-Designed as a Claude Code plugin. It hooks into your prompt submission flow and adds codebase context before Claude sees it.
+**Designed as a Claude Code plugin.** It hooks into your prompt submission flow and adds codebase context before Claude sees it.
 
 ## Motivation
 

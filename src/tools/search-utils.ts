@@ -59,10 +59,7 @@ export function grepSync(args: string[], cwd: string): string {
       encoding: "utf-8",
       maxBuffer: 1024 * 1024,
     }).trim();
-  } catch (err: unknown) {
-    if (err && typeof err === "object" && "status" in err && err.status === 1) {
-      return "";
-    }
+  } catch {
     return "";
   }
 }

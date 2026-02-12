@@ -13,6 +13,7 @@ const GIT_TIMEOUT = 5_000;
 // --exclude-dir: skip dirs that are huge and almost always irrelevant
 const BASE_GREP_FLAGS = [
   "-I",
+  "-D", "skip",
   "--exclude-dir", ".git",
   "--exclude-dir", "node_modules",
 ];

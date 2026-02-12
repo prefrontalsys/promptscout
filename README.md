@@ -39,6 +39,12 @@ flowchart LR
 ### Install
 
 ```bash
+npm install -g promptscout
+```
+
+Or from source:
+
+```bash
 git clone https://github.com/obsfx/promptscout.git
 cd promptscout
 pnpm install

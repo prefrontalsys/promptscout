@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { Command } from "commander";
 import { getDrizzle } from "./storage/database.js";
 import { HistoryRepo } from "./storage/history-repo.js";
@@ -11,12 +14,15 @@ import { registerSetupCommand } from "./commands/setup.js";
 import { registerRewriteCommand } from "./commands/rewrite.js";
 import { registerHistoryCommand } from "./commands/history.js";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf-8"));
+
 const program = new Command();
 
 program
   .name("promptscout")
   .description("Rewrite coding agent prompts using a local LLM")
-  .version("1.0.0");
+  .version(pkg.version);
 
 // 1. Database
 const db = getDrizzle();

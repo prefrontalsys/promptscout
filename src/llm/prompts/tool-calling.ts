@@ -17,7 +17,6 @@ Rules:
   - definition_finder: find function, class, type, struct definitions
   - import_tracer: find who imports a module
   - git_history: find recent commits that changed related code
-  - external_link_summarizer: fetch a URL mentioned in the prompt
 - If the prompt is feedback, observation, or status update (not asking to change code), output exactly: []
 - Do NOT output anything except the JSON array.`;
 }

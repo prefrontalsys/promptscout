@@ -1,6 +1,4 @@
 import type { Ignore } from "ignore";
-import { convert } from "html-to-text";
-import ky from "ky";
 import {
   escapeRegex,
   filterLines,
@@ -12,8 +10,6 @@ import {
 const MAX_FILES = 10;
 const MAX_LINES = 20;
 const MAX_COMMITS = 10;
-const MAX_CHARS = 2000;
-const HTTP_TIMEOUT = 10_000;
 
 // Multi-language definition patterns:
 // JS/TS: export, function, class, interface, type, const, enum
@@ -125,18 +121,3 @@ export function gitHistory(query: string, dir: string): string {
     .join("\n");
 }
 
-export async function externalLinkSummarizer(url: string): Promise<string> {
-  try {
-    const response = await ky.get(url, { timeout: HTTP_TIMEOUT });
-    const html = await response.text();
-    let text = convert(html, { wordwrap: false });
-
-    if (text.length > MAX_CHARS) {
-      text = text.slice(0, MAX_CHARS) + "...(CONTENT_CLIPPED)";
-    }
-
-    return text || "Empty response from URL.";
-  } catch {
-    return "Failed to fetch URL.";
-  }
-}

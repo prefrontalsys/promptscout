@@ -5,7 +5,6 @@ import {
   definitionFinder,
   importTracer,
   gitHistory,
-  externalLinkSummarizer,
 } from "./implementations.js";
 
 export { loadIgnoreFilter } from "./search-utils.js";
@@ -31,8 +30,6 @@ export async function executeToolCall(
       return importTracer(call.arguments.query, dir, ig);
     case "git_history":
       return gitHistory(call.arguments.query, dir);
-    case "external_link_summarizer":
-      return externalLinkSummarizer(call.arguments.url);
     default:
       return `Unknown tool: ${call.name}`;
   }
@@ -144,28 +141,6 @@ export const TOOL_DEFINITIONS = [
           },
         },
         required: ["query"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "external_link_summarizer",
-      description:
-        "Fetch a URL and return its text content (HTML stripped, up to 2000 characters). " +
-        "Use this ONLY when the user's prompt explicitly contains a URL. " +
-        "Do NOT fabricate or guess URLs.",
-      parameters: {
-        type: "object",
-        properties: {
-          url: {
-            type: "string",
-            description:
-              "The exact URL from the user's prompt to fetch. Must be a complete, valid URL " +
-              "starting with http:// or https://.",
-          },
-        },
-        required: ["url"],
       },
     },
   },

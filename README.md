@@ -18,13 +18,13 @@ Your original prompt is never modified. promptscout only appends context.
 flowchart LR
     A["Raw Prompt"] --> B["Local LLM<br/>(Qwen 3 4B)"]
     B -->|"tool calls"| C["Execute Tools"]
-    C --> D["grep / git / HTTP"]
+    C --> D["grep / git"]
     D --> E["Original Prompt<br/>+ Discovered Context"]
 ```
 
 1. You run `promptscout "check the auth module, there might be a token refresh bug"`
 2. The local LLM reads your prompt and decides which tools to call (e.g. `file_finder("auth")`, `section_finder("refresh")`, `git_history("token")`)
-3. Each tool runs against your codebase using grep, git, or HTTP
+3. Each tool runs against your codebase using grep and git
 4. The output is your original prompt unchanged, followed by the discovered context
 5. The result is copied to your clipboard, ready to paste into your coding agent
 
@@ -80,7 +80,7 @@ promptscout uses **Qwen 3 4B** (Q4_K_M quantization) running locally via [node-l
 
 ## Tools
 
-promptscout has 6 built-in tools that the LLM can invoke:
+promptscout has 5 built-in tools that the LLM can invoke:
 
 | Tool | What it does |
 |---|---|
@@ -89,7 +89,6 @@ promptscout has 6 built-in tools that the LLM can invoke:
 | `definition_finder` | Finds function, class, type, and struct definitions across languages. |
 | `import_tracer` | Finds import/require/include statements referencing a module. |
 | `git_history` | Finds recent commits that added or removed code matching a keyword. |
-| `external_link_summarizer` | Fetches a URL from the prompt and returns its text content. |
 
 All grep-based tools respect `.gitignore` and skip binary files.
 

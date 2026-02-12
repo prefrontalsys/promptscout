@@ -196,26 +196,35 @@ Context from codebase:
 <file_finder query="audio">
 Sources/Core/AudioCaptureSession.swift
 Sources/Core/AudioTapManager.swift
-entitlements.plist
-README.md
-Sources/Core/InputDeviceQuery.swift
-Sources/IO/RingBuffer.swift
-Sources/IO/WAVWriter.swift
+Sources/Info.plist
+Sources/main.swift
+Sources/CLI/ArgumentParser.swift
 Sources/CLI/ExitCodes.swift
+README.md
+entitlements.plist
+Sources/IO/RingBuffer.swift
+Package.swift
 </file_finder>
 
-<git_history query="audio">
-d41aece Initial commit: audiograb - macOS system audio capture CLI
-  Package.swift
-  README.md
-  Sources/CLI/ArgumentParser.swift
-  Sources/Core/AudioCaptureSession.swift
-  Sources/Core/AudioTapManager.swift
-  Sources/IO/RingBuffer.swift
-  Sources/main.swift
-d800ac1 Add microphone recording support via --source mic flag
-  Sources/Info.plist
-</git_history>
+<definition_finder query="format">
+Sources/main.swift:49:              let tapFormat = tapManager.tapFormat else {
+Sources/main.swift:53:        let outputSampleRate = UInt32(tapFormat.mSampleRate)
+Sources/main.swift:55:        let sourceChannels = Int(tapFormat.mChannelsPerFrame)
+Sources/Core/InputDeviceQuery.swift:41:    var formatAddress = AudioObjectPropertyAddress(
+Sources/Core/InputDeviceQuery.swift:46:    var format = AudioStreamBasicDescription()
+Sources/Core/AudioTapManager.swift:23:        case .formatQueryFailed(let status):
+Sources/Core/AudioTapManager.swift:34:    private(set) var tapFormat: AudioStreamBasicDescription?
+Sources/Core/AudioTapManager.swift:103:    private func queryTapFormat(tapID: AudioObjectID) throws -> AudioStreamBasicDescription {
+Sources/Core/AudioTapManager.swift:110:        var format = AudioStreamBasicDescription()
+Sources/Core/AudioTapManager.swift:112:        let status = AudioObjectGetPropertyData(tapID, &address, 0, nil, &size, &format)
+</definition_finder>
+
+<import_tracer query="audio">
+Sources/IO/RingBuffer.swift:39:    /// Write bytes into the ring buffer. Called from the real-time audio thread.
+README.md:13:Download the latest build from the releases page.
+README.md:77:Record from the default microphone instead of system audio.
+README.md:149:The included entitlements.plist declares com.apple.security.device.audio-input.
+</import_tracer>
 ```
 
 ### TypeScript project (task management CLI)
@@ -231,25 +240,48 @@ I want to add task filtering by status and tags. check how tasks are stored and 
 Context from codebase:
 
 <file_finder query="task">
+src/services/task.ts
+src/commands/task.ts
+src/commands/subtask.ts
 tests/commands/subtask.test.ts
 tests/commands/task.test.ts
-src/commands/task.ts
-src/services/task.ts
-tests/integration/workflows.test.ts
-tests/commands/comment.test.ts
-tests/commands/history.test.ts
+package.json
+src/services/epic.ts
+README.md
+CLAUDE.md
+src/services/history.ts
 </file_finder>
 
-<definition_finder query="Task">
-tests/integration/workflows.test.ts:10:interface Task {
+<section_finder query="status">
+src/services/task.ts:9:  TaskStatus,
+src/services/task.ts:73:  status?: TaskStatus;
+src/services/task.ts:81:  if (options?.status) {
+src/services/task.ts:82:    conditions.push(eq(tasks.status, options.status));
+src/services/list.ts:56:  if (options?.statuses && options.statuses.length > 0) {
+src/services/list.ts:57:    const placeholders = options.statuses.map(() => "?").join(", ");
+src/services/list.ts:58:    conditions.push(`status IN (${placeholders})`);
+</section_finder>
+
+<section_finder query="tag">
+src/services/task.ts:56:    tags: input.tags ?? null,
+src/services/task.ts:140:  if (input.tags !== undefined) updates.tags = input.tags;
+src/commands/task.ts:29:  .option("--tags <tags>", "Comma-separated tags")
+src/commands/task.ts:91:  .option("--tags <tags>", "New tags (comma-separated)")
+</section_finder>
+
+<definition_finder query="task">
+src/services/task.ts:16:export function createTask(input: CreateTaskInput): Task {
+src/services/task.ts:66:export function getTask(id: string): Task | undefined {
 src/services/task.ts:72:export function listTasks(options?: {
+src/services/task.ts:116:export function updateTask(id: string, input: UpdateTaskInput): Task {
 </definition_finder>
 
-<section_finder query="listTasks">
-src/commands/task.ts:5:  listTasks,
-src/commands/task.ts:58:      const tasks = listTasks({
-src/services/task.ts:72:export function listTasks(options?: {
-</section_finder>
+<import_tracer query="task">
+src/services/task.ts:3:import { tasks, projects, epics } from "../db/schema";
+src/services/comment.ts:3:import { comments, tasks } from "../db/schema";
+src/services/dependency.ts:3:import { dependencies, tasks } from "../db/schema";
+src/commands/task.ts:8:} from "../services/task";
+</import_tracer>
 ```
 
 ### React/TypeScript project (terminal ebook downloader)
@@ -266,23 +298,26 @@ and find the related components
 Context from codebase:
 
 <file_finder query="search">
-src/tui/layouts/search/search-input/SearchWarning.tsx
 src/tui/layouts/search/search-input/SearchInput.tsx
+src/tui/layouts/search/search-input/SearchWarning.tsx
 src/tui/layouts/search/index.tsx
 src/tui/layouts/search/search-input/index.tsx
-README.md
-package.json
+src/options.ts
+src/labels.ts
+src/constants.ts
+src/utils.ts
+src/settings.ts
 CLAUDE.md
-src/tui/index.tsx
 </file_finder>
 
-<section_finder query="search">
-src/tui/components/ResultListInfo.tsx:6:  const searchValue = useBoundStore((state) => state.searchValue);
-CLAUDE.md:30:- `libgen-downloader -s "query"` - Direct search with TUI
-CLAUDE.md:43:  - `Adapter.ts` - Abstract base for different search sources
-CLAUDE.md:54:- `app.ts` - UI state, layouts, loading indicators, search state
-CLAUDE.md:58:- `cache.ts` - Search result caching mechanism
-</section_finder>
+<definition_finder query="search">
+src/api/data/document.ts:3:export async function getDocument(searchURL: string): Promise<Document> {
+src/constants.ts:1:export const SEARCH_MIN_CHAR = 3;
+src/settings.ts:11:export const SEARCH_PAGE_SIZE = 25;
+src/tui/store/events.ts:31:    const searchURL = get().mirrorAdapter?.getSearchURL(query, pageNumber, SEARCH_PAGE_SIZE);
+src/tui/store/events.ts:68:    const entries = await store.search(store.searchValue, store.currentPage);
+src/tui/layouts/search/index.tsx:8:const Search: React.FC = () => {
+</definition_finder>
 ```
 
 ### No-context detection

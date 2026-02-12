@@ -13,9 +13,9 @@ export interface HistoryListItem {
 export class HistoryService {
   constructor(private historyRepo: HistoryRepo) {}
 
-  list(all: boolean, limit: number): HistoryListItem[] {
+  list(all: boolean, limit: number, offset: number = 0): HistoryListItem[] {
     const directory = all ? undefined : process.cwd();
-    const entries = this.historyRepo.list(directory, limit);
+    const entries = this.historyRepo.list(directory, limit, offset);
     return entries.map((e) => ({
       id: e.id,
       createdAt: e.created_at,

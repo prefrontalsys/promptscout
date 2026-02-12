@@ -68,15 +68,16 @@ export class Rewriter {
     if (calls.length === 0) return rawPrompt;
 
     const ig = loadIgnoreFilter(searchDir);
-    const results: string[] = [];
 
-    for (const call of calls) {
-      const param = call.arguments.url ?? call.arguments.query;
-      onStatus?.(`Called ${call.name}(${param})`);
-      const result = await executeToolCall(call, searchDir, ig);
-      if (!result || isEmptyResult(result)) continue;
-      results.push(formatToolResult(call, result));
-    }
+    onStatus?.(`Running ${calls.length} tool calls`);
+    const settled = await Promise.all(
+      calls.map(async (call) => {
+        const result = await executeToolCall(call, searchDir, ig);
+        if (!result || isEmptyResult(result)) return null;
+        return formatToolResult(call, result);
+      }),
+    );
+    const results = settled.filter((r): r is string => r !== null);
 
     if (results.length === 0) return rawPrompt;
 

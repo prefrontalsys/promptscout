@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import type { HistoryService } from "../core/history-service.js";
 import { confirm } from "@inquirer/prompts";
+import Table from "cli-table3";
 
 export function registerHistoryCommand(
   program: Command,
@@ -10,12 +11,16 @@ export function registerHistoryCommand(
 
   hist
     .option("-a, --all", "Show history across all directories")
-    .option("-n, --limit <number>", "Number of entries to show", "20")
+    .option("-n, --limit <number>", "Number of entries per page", "10")
+    .option("-p, --page <number>", "Page number", "1")
     .action((opts: Record<string, unknown>) => {
       const limit = parseInt(opts.limit as string, 10);
-      const entries = service.list(!!opts.all, limit);
+      const page = parseInt(opts.page as string, 10);
+      const offset = (page - 1) * limit;
 
-      if (entries.length === 0) {
+      const entries = service.list(!!opts.all, limit, offset);
+
+      if (entries.length === 0 && page === 1) {
         console.log("No history entries found.");
         if (!opts.all) {
           console.log("Tip: Use -a to show history from all directories.");
@@ -23,10 +28,24 @@ export function registerHistoryCommand(
         return;
       }
 
-      for (let i = 0; i < entries.length; i++) {
-        const e = entries[i];
-        console.log(`│ (${e.id}) (${e.model_name}) ${e.preview}`);
+      if (entries.length === 0) {
+        console.log(`No entries on page ${page}.`);
+        return;
       }
+
+      const table = new Table({
+        head: ["#", "Model", "Prompt"],
+        colWidths: [6, 22, 60],
+        wordWrap: true,
+        style: { head: [], border: [] },
+      });
+
+      for (const e of entries) {
+        table.push([String(e.id), e.model_name, e.preview]);
+      }
+
+      console.log(table.toString());
+      console.log(`  Page ${page} | ${entries.length} entries | promptscout history -p ${page + 1}`);
     });
 
   hist
@@ -39,13 +58,23 @@ export function registerHistoryCommand(
         process.exit(1);
       }
 
-      console.log(`(${entry.id})`);
-      console.log(`│ Date:      ${entry.created_at}`);
-      console.log(`│ Directory: ${entry.directory}`);
-      console.log(`│ Model:     ${entry.model_name || "N/A"}`);
-      console.log(`│ Raw Input:`);
+      const table = new Table({
+        style: { head: [], border: [] },
+        wordWrap: true,
+        colWidths: [14, 74],
+      });
+
+      table.push(
+        ["ID", String(entry.id)],
+        ["Date", entry.created_at],
+        ["Directory", entry.directory],
+        ["Model", entry.model_name || "N/A"],
+      );
+
+      console.log(table.toString());
+      console.log("\nRaw Input:");
       console.log(entry.raw_input);
-      console.log(`│ Improved Output:`);
+      console.log("\nImproved Output:");
       console.log(entry.improved_output);
     });
 

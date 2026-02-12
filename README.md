@@ -81,15 +81,21 @@ Or in Claude Code interactive mode:
 
 Once installed, every prompt you submit in Claude Code gets enriched with codebase context via the `UserPromptSubmit` hook. The plugin passes your prompt through `promptscout` with `--json-output --no-clipboard` and injects the result as additional context.
 
+When context is found, the plugin shows a summary notification:
+
+```
+promptscout: enriched context (+5 files) (+3 sections) (+1 definitions)
+```
+
 If `promptscout` is not installed or fails for any reason, the plugin falls back silently and your original prompt goes through unchanged.
 
 ## Model
 
-promptscout uses `Qwen 3 4B` (`Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model runs on CPU by default to avoid GPU memory issues on constrained machines.
+promptscout uses `Qwen 3 4B` (`Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model uses GPU acceleration automatically when available (Metal on macOS, CUDA on Linux).
 
 - Size: ~2.5GB (`GGUF Q4_K_M`)
 - Context: 4096 tokens
-- Latency: 7-15s per prompt (CPU, Apple Silicon)
+- Latency: ~2s per prompt (Metal, Apple Silicon)
 - Purpose: Decides which search tools to call based on your prompt. Does not rewrite your text.
 
 ## Tools
@@ -131,6 +137,52 @@ promptscout --json-output "fix the pagination bug"
 --json-output                Output JSON instead of plain text
 --no-clipboard               Skip clipboard copy
 --project-dir <dir>          Project root directory
+```
+
+## Commands
+
+### `promptscout setup`
+
+Initialize promptscout and download the default model. Creates the data directory at `~/.promptscout/` and downloads `Qwen 3 4B` (~2.5GB).
+
+```bash
+promptscout setup
+```
+
+### `promptscout history`
+
+View prompt history with paginated table output.
+
+```bash
+# Show history for current directory (default: 10 per page)
+promptscout history
+
+# Show all history across directories
+promptscout history -a
+
+# Paginate results
+promptscout history -p 2 -n 5
+
+# Show full detail of a specific entry
+promptscout history show 42
+
+# Clear all history
+promptscout history clear
+```
+
+### `promptscout system-prompt`
+
+View and manage the LLM system prompt that controls how prompts are classified and tools are selected.
+
+```bash
+# View current system prompt and token count
+promptscout system-prompt
+
+# Edit in $EDITOR
+promptscout system-prompt edit
+
+# Reset to default
+promptscout system-prompt reset
 ```
 
 ## Examples

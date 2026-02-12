@@ -16,8 +16,8 @@ export const LLM_CONTEXT_SIZE = 4096;
 
 export const MODEL_HF_URI_KEY = "model_hf_uri";
 export const MODEL_CONTEXT_SIZE_KEY = "model_context_size";
-// CPU-only to avoid Metal OOM on constrained machines
-export const GPU_LAYERS = 0;
+// "auto" lets node-llama-cpp offload as many layers as fit in GPU/Metal memory
+export const GPU_LAYERS = "auto" as const;
 
 // Tokens reserved for the model's response
 export const RESPONSE_TOKEN_RESERVE = 1024;

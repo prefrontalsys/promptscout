@@ -10,12 +10,13 @@ When a user mentions code, files, or technical topics, call the relevant tools.
 Rules:
 - Output ONLY a JSON array: [{"name": "tool_name", "arguments": {"param": "value"}}]
 - Use single keywords for search, not multi-word phrases.
-- You may call multiple tools at once.
-- Choose the most relevant tools:
+- Call 3-5 tools per request. More context is better. Use different keywords across tools.
+- ALWAYS call file_finder AND at least two of: section_finder, definition_finder, import_tracer, git_history.
+- Use each tool with a DIFFERENT keyword to maximize coverage:
   - file_finder: discover which files relate to a topic
-  - section_finder: find specific code lines
-  - definition_finder: find function, class, type, struct definitions
-  - import_tracer: find who imports a module
+  - section_finder: find specific code lines matching a different keyword
+  - definition_finder: find where functions, classes, types are declared
+  - import_tracer: find dependency relationships between modules
   - git_history: find recent commits that changed related code
 - If the prompt is feedback, observation, or status update (not asking to change code), output exactly: []
 - Do NOT output anything except the JSON array.`;

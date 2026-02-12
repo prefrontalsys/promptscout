@@ -26,12 +26,13 @@ export class HistoryRepo {
       .get() as HistoryEntry;
   }
 
-  list(directory?: string, limit: number = DEFAULT_HISTORY_LIMIT): HistoryEntry[] {
+  list(directory?: string, limit: number = DEFAULT_HISTORY_LIMIT, offset: number = 0): HistoryEntry[] {
     const query = this.db
       .select()
       .from(history)
       .orderBy(desc(history.created_at))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
 
     if (directory) {
       return query.where(eq(history.directory, directory)).all() as HistoryEntry[];

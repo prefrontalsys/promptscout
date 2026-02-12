@@ -4,6 +4,8 @@ import {
   resolveModelFile,
   LlamaChatSession,
   LlamaLogLevel,
+  QwenChatWrapper,
+  resolveChatWrapper,
 } from "node-llama-cpp";
 import type { InferenceParams } from "../types.js";
 import { GPU_LAYERS } from "../constants.js";
@@ -35,9 +37,15 @@ export async function generate(
   const context = await model.createContext({
     contextSize,
   });
+  const resolved = resolveChatWrapper(model);
+  const chatWrapper = resolved instanceof QwenChatWrapper
+    ? new QwenChatWrapper({ thoughts: "discourage" })
+    : undefined;
+
   const session = new LlamaChatSession({
     contextSequence: context.getSequence(),
     systemPrompt,
+    chatWrapper,
   });
 
   const abort = new AbortController();

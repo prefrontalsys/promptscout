@@ -1,14 +1,42 @@
 {
   "name": "promptscout",
   "version": "1.0.0",
-  "description": "CLI tool that improves coding agent prompts using a local LLM",
+  "description": "Enrich coding agent prompts with codebase context using a local LLM",
   "type": "module",
   "bin": {
     "promptscout": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "claude-plugin",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run clean && pnpm run build"
   },
+  "keywords": [
+    "cli",
+    "llm",
+    "prompt",
+    "coding-agent",
+    "codebase",
+    "context",
+    "claude",
+    "local-llm",
+    "gguf"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obsfx/promptscout.git"
+  },
+  "homepage": "https://github.com/obsfx/promptscout",
+  "bugs": {
+    "url": "https://github.com/obsfx/promptscout/issues"
+  },
+  "author": "obsfx",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"

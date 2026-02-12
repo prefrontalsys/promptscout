@@ -1,0 +1,10 @@
+src/
+spikes/
+docs/
+.trekker/
+.git/
+.gitignore
+tsconfig.json
+pnpm-lock.yaml
+*.tsbuildinfo
+*.tgz

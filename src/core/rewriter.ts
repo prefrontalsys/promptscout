@@ -7,13 +7,12 @@ import {
 } from "../llm/prompts/tool-calling.js";
 import {
   type ToolCall,
-  TOOL_DEFINITIONS,
   executeToolCall,
-  loadIgnoreFilter,
+  buildProjectTree,
 } from "../tools/index.js";
 
 const TOOL_CALLING_PARAMS: InferenceParams = {
-  temperature: 0.6,
+  temperature: 0.3,
   topP: 0.8,
   topK: 20,
   minP: 0.0,
@@ -33,7 +32,7 @@ function isEmptyResult(result: string): boolean {
 }
 
 function formatToolResult(call: ToolCall, result: string): string {
-  const param = call.arguments.url ?? call.arguments.query;
+  const param = call.arguments.query;
   return `<${call.name} query="${param}">\n${result}\n</${call.name}>`;
 }
 
@@ -55,7 +54,8 @@ export class Rewriter {
 
     onStatus?.("Evaluating");
 
-    const systemPrompt = buildToolCallingPrompt(TOOL_DEFINITIONS);
+    const tree = buildProjectTree(searchDir);
+    const systemPrompt = buildToolCallingPrompt(tree);
     const raw = await generate(
       systemPrompt,
       rawPrompt,
@@ -67,12 +67,10 @@ export class Rewriter {
     const calls = parseToolCalls(raw);
     if (calls.length === 0) return rawPrompt;
 
-    const ig = loadIgnoreFilter(searchDir);
-
     onStatus?.(`Running ${calls.length} tool calls`);
     const settled = await Promise.all(
       calls.map(async (call) => {
-        const result = await executeToolCall(call, searchDir, ig);
+        const result = await executeToolCall(call, searchDir);
         if (!result || isEmptyResult(result)) return null;
         return formatToolResult(call, result);
       }),

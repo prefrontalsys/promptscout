@@ -1,9 +1,7 @@
-import type { Ignore } from "ignore";
 import {
   escapeRegex,
-  filterLines,
   stripDirPrefix,
-  grepSync,
+  rgSync,
   gitSync,
 } from "./search-utils.js";
 
@@ -32,17 +30,15 @@ function scoreFilePath(filePath: string, lowerQuery: string): number {
   return score;
 }
 
-export function fileFinder(query: string, dir: string, ig: Ignore): string {
+export function fileFinder(query: string, dir: string): string {
   const escaped = escapeRegex(query);
-  const output = grepSync(["-rli", "-E", escaped, dir], dir);
+  const output = rgSync(["-li", escaped], dir);
 
   if (!output) return "No matching files found.";
 
-  const filtered = filterLines(output.split("\n"), dir, ig);
-  if (filtered.length === 0) return "No matching files found.";
-
+  const lines = output.split("\n").filter(Boolean);
   const lowerQuery = query.toLowerCase();
-  const scored = filtered
+  const scored = lines
     .map((l) => ({ path: stripDirPrefix(l, dir), score: scoreFilePath(l, lowerQuery) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, MAX_FILES);
@@ -50,17 +46,15 @@ export function fileFinder(query: string, dir: string, ig: Ignore): string {
   return scored.map((s) => s.path).join("\n");
 }
 
-export function sectionFinder(query: string, dir: string, ig: Ignore): string {
+export function sectionFinder(query: string, dir: string): string {
   const escaped = escapeRegex(query);
-  const output = grepSync(["-rni", "-E", escaped, dir], dir);
+  const output = rgSync(["-ni", escaped], dir);
 
   if (!output) return "No matching code found.";
 
-  const filtered = filterLines(output.split("\n"), dir, ig);
-  if (filtered.length === 0) return "No matching code found.";
-
+  const lines = output.split("\n").filter(Boolean);
   const lowerQuery = query.toLowerCase();
-  const scored = filtered
+  const scored = lines
     .map((l) => ({ line: stripDirPrefix(l, dir), score: scoreFilePath(l, lowerQuery) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, MAX_LINES);
@@ -68,13 +62,15 @@ export function sectionFinder(query: string, dir: string, ig: Ignore): string {
   return scored.map((s) => s.line).join("\n");
 }
 
-export function definitionFinder(query: string, dir: string, ig: Ignore): string {
-  const output = grepSync(["-rnE", DEFINITION_PATTERN, dir], dir);
+export function definitionFinder(query: string, dir: string): string {
+  const output = rgSync(["-n", DEFINITION_PATTERN], dir);
 
   if (!output) return "No definitions found.";
 
   const lowerQuery = query.toLowerCase();
-  const filtered = filterLines(output.split("\n"), dir, ig)
+  const filtered = output
+    .split("\n")
+    .filter(Boolean)
     .filter((line) => line.toLowerCase().includes(lowerQuery))
     .slice(0, MAX_LINES);
 
@@ -83,13 +79,13 @@ export function definitionFinder(query: string, dir: string, ig: Ignore): string
   return filtered.map((l) => stripDirPrefix(l, dir)).join("\n");
 }
 
-export function importTracer(query: string, dir: string, ig: Ignore): string {
+export function importTracer(query: string, dir: string): string {
   const escaped = escapeRegex(query);
-  const output = grepSync(["-rnE", `(import|from|require|include|use).*${escaped}`, dir], dir);
+  const output = rgSync(["-n", `(import|from|require|include|use).*${escaped}`], dir);
 
   if (!output) return "No matching imports found.";
 
-  const lines = filterLines(output.split("\n"), dir, ig).slice(0, MAX_LINES);
+  const lines = output.split("\n").filter(Boolean).slice(0, MAX_LINES);
   if (lines.length === 0) return "No matching imports found.";
 
   return lines.map((l) => stripDirPrefix(l, dir)).join("\n");
@@ -120,4 +116,3 @@ export function gitHistory(query: string, dir: string): string {
     )
     .join("\n");
 }
-

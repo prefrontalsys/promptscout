@@ -1,62 +1,22 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import ignore, { type Ignore } from "ignore";
 
-const GREP_TIMEOUT = 5_000;
+const RG_TIMEOUT = 5_000;
 const GIT_TIMEOUT = 5_000;
-
-// Hardcoded for grep traversal performance only.
-// .git is never in .gitignore (git handles it internally).
-// node_modules is virtually always gitignored and huge.
-// -I: skip binary files (images, fonts, compiled assets)
-// --exclude-dir: skip dirs that are huge and almost always irrelevant
-const BASE_GREP_FLAGS = [
-  "-I",
-  "-D", "skip",
-  "--exclude-dir", ".git",
-  "--exclude-dir", "node_modules",
-];
 
 export function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export function loadIgnoreFilter(dir: string): Ignore {
-  const ig = ignore();
-  try {
-    const content = readFileSync(join(dir, ".gitignore"), "utf-8");
-    ig.add(content);
-  } catch {
-    // No .gitignore — no extra filtering
-  }
-  return ig;
-}
-
-function extractRelativePath(line: string, dir: string): string {
-  const relative = line.startsWith(dir + "/")
-    ? line.slice(dir.length + 1)
-    : line;
-  const match = relative.match(/^(.+?):\d+:/);
-  return match ? match[1] : relative;
-}
-
-export function filterLines(lines: string[], dir: string, ig: Ignore): string[] {
-  return lines.filter((line) => {
-    const rel = extractRelativePath(line, dir);
-    return !ig.ignores(rel);
-  });
-}
-
 export function stripDirPrefix(line: string, dir: string): string {
-  return line.replace(dir + "/", "");
+  return line.replace(dir + "/", "").replace(/^\.\//, "");
 }
 
-export function grepSync(args: string[], cwd: string): string {
+export function rgSync(args: string[], cwd: string): string {
   try {
-    return execFileSync("grep", [...BASE_GREP_FLAGS, ...args], {
+    // Explicit "." prevents rg from reading stdin when spawned by Node.js
+    return execFileSync("rg", [...args, "."], {
       cwd,
-      timeout: GREP_TIMEOUT,
+      timeout: RG_TIMEOUT,
       encoding: "utf-8",
       maxBuffer: 1024 * 1024,
     }).trim();
@@ -76,4 +36,62 @@ export function gitSync(args: string[], cwd: string): string {
   } catch {
     return "";
   }
+}
+
+const MAX_TREE_LINES = 80;
+const MAX_TREE_DEPTH = 4;
+
+export function buildProjectTree(dir: string): string {
+  const output = gitSync(["ls-files"], dir);
+  if (!output) return "";
+
+  const files = output.split("\n").filter(Boolean);
+
+  // Build nested map from flat file paths
+  const tree = new Map<string, unknown>();
+  for (const file of files) {
+    const parts = file.split("/");
+    let current = tree;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (i === parts.length - 1) {
+        current.set(part, null);
+      } else {
+        if (!current.has(part)) current.set(part, new Map());
+        current = current.get(part) as Map<string, unknown>;
+      }
+    }
+  }
+
+  const lines: string[] = [];
+
+  function render(node: Map<string, unknown>, indent: string, depth: number) {
+    if (lines.length >= MAX_TREE_LINES || depth > MAX_TREE_DEPTH) return;
+
+    const entries = [...node.entries()].sort(([, av], [, bv]) => {
+      const aDir = av instanceof Map;
+      const bDir = bv instanceof Map;
+      if (aDir && !bDir) return -1;
+      if (!aDir && bDir) return 1;
+      return 0;
+    });
+
+    for (const [name, value] of entries) {
+      if (lines.length >= MAX_TREE_LINES) break;
+      if (value instanceof Map) {
+        lines.push(`${indent}${name}/`);
+        render(value, indent + "  ", depth + 1);
+      } else {
+        lines.push(`${indent}${name}`);
+      }
+    }
+  }
+
+  render(tree, "", 0);
+
+  if (files.length > lines.length) {
+    lines.push(`... (${files.length} files total)`);
+  }
+
+  return lines.join("\n");
 }

@@ -8,7 +8,7 @@ A CLI tool that enriches your coding agent prompts with codebase context using a
 
 When you ask a coding agent like Claude Code, Cursor, or Copilot to work on your codebase, the agent spends time and tokens discovering which files matter. It greps, reads, explores, all on your dime.
 
-promptscout does that discovery locally, for free. A small local LLM reads your prompt, searches your codebase with `grep` and `git`, and appends the results to your original prompt. The paid agent gets a prompt that already contains the relevant file paths, code snippets, and commit history. It can skip straight to the actual work.
+promptscout does that discovery locally, for free. A small local LLM reads your prompt, searches your codebase with `ripgrep` and `git`, and appends the results to your original prompt. The paid agent gets a prompt that already contains the relevant file paths, code snippets, and commit history. It can skip straight to the actual work.
 
 Your original prompt is never modified. promptscout only appends context.
 
@@ -17,16 +17,22 @@ Your original prompt is never modified. promptscout only appends context.
 ```mermaid
 flowchart LR
     A["Raw Prompt"] --> B["Local LLM<br/>(Qwen 3 4B)"]
-    B -->|"tool calls"| C["Execute Tools"]
-    C --> D["grep / git"]
-    D --> E["Original Prompt<br/>+ Discovered Context"]
+    B -->|"tool calls"| C["ripgrep / git"]
+    C --> D["Original Prompt<br/>+ Discovered Context"]
+
+    subgraph B_ctx[" "]
+        direction TB
+        T["Project Tree<br/>(git ls-files)"]
+    end
+    T -.->|"context"| B
 ```
 
 1. You run `promptscout "check the auth module, there might be a token refresh bug"`
-2. The local LLM reads your prompt and picks which tools to call (e.g. `file_finder("auth")`, `section_finder("refresh")`, `git_history("token")`)
-3. Each tool runs against your codebase using `grep` and `git`
-4. The output is your original prompt unchanged, followed by the discovered context
-5. The result is copied to your clipboard, ready to paste into your coding agent
+2. The local LLM sees your prompt along with the project file tree (`git ls-files`) and decides which search tools to call
+3. The LLM outputs tool calls directly as JSON (e.g. `file_finder("auth")`, `section_finder("token")`, `git_history("refresh")`)
+4. Each tool runs against your codebase using `ripgrep` and `git`
+5. The output is your original prompt unchanged, followed by the discovered context
+6. The result is copied to your clipboard, ready to paste into your coding agent
 
 ## Installation
 
@@ -34,6 +40,8 @@ flowchart LR
 
 - Node.js >= 20
 - C++ compiler (Xcode Command Line Tools on macOS, `build-essential` on Linux)
+- [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) for fast codebase search
+- `git` (for project tree generation and commit history search)
 - ~3GB disk space for the model
 
 ### Install
@@ -94,13 +102,13 @@ If `promptscout` is not installed or fails for any reason, the plugin falls back
 promptscout uses `Qwen 3 4B` (`Q4_K_M` quantization) running locally via [node-llama-cpp](https://github.com/withcatai/node-llama-cpp). The model uses GPU acceleration automatically when available (Metal on macOS, CUDA on Linux).
 
 - Size: ~2.5GB (`GGUF Q4_K_M`)
-- Context: 4096 tokens
+- Context: 8192 tokens
 - Latency: ~2s per prompt (Metal, Apple Silicon)
-- Purpose: Decides which search tools to call based on your prompt. Does not rewrite your text.
+- Purpose: Decides which search tools to call based on your prompt and the project file tree. Does not rewrite your text.
 
 ## Tools
 
-promptscout has 5 built-in tools that the LLM can invoke:
+promptscout has 5 built-in search tools. The LLM picks which ones to call and with what keywords:
 
 | Tool | What it does |
 |---|---|
@@ -110,7 +118,7 @@ promptscout has 5 built-in tools that the LLM can invoke:
 | `import_tracer` | Finds import/require/include statements referencing a module. |
 | `git_history` | Finds recent commits that added or removed code matching a keyword. |
 
-All `grep`-based tools respect `.gitignore` and skip binary files.
+All search tools use `ripgrep`, which respects `.gitignore` and skips binary files automatically.
 
 ## Usage
 
@@ -277,16 +285,16 @@ CLAUDE.md:58:- `cache.ts` - Search result caching mechanism
 </section_finder>
 ```
 
-### Feedback detection
+### No-context detection
 
-When the prompt is feedback or an observation (not asking to change code), promptscout returns it unchanged with no context appended:
-
-```
-$ promptscout "that didn't solve the issue, it is still rotated 90 degrees clockwise"
-```
+When the prompt has no technical keywords (pure acknowledgment), promptscout returns it unchanged:
 
 ```
-that didn't solve the issue, it is still rotated 90 degrees clockwise
+$ promptscout "thanks, that works perfectly"
+```
+
+```
+thanks, that works perfectly
 ```
 
 ## License

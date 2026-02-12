@@ -44,9 +44,8 @@ export const TOOL_DEFINITIONS = [
     function: {
       name: "file_finder",
       description:
-        "Recursively search the project directory for files whose contents match the given keyword. " +
-        "Returns up to 10 relative file paths. Use this as a first step to discover which files are " +
-        "relevant to a topic before diving deeper with section_finder or definition_finder.",
+        "Find files matching a keyword. Returns file paths. " +
+        "Pair with section_finder using a different keyword to also get code snippets.",
       parameters: {
         type: "object",
         properties: {
@@ -66,9 +65,8 @@ export const TOOL_DEFINITIONS = [
     function: {
       name: "section_finder",
       description:
-        "Search for specific code lines matching a keyword across all source files. " +
-        "Returns up to 15 results in 'file:line:code' format showing the exact matching lines. " +
-        "Use this when you need to see the actual code, not just file names.",
+        "Find code snippets matching a keyword. Returns file:line:code entries. " +
+        "Use alongside file_finder with a different keyword for complete context.",
       parameters: {
         type: "object",
         properties: {

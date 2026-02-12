@@ -33,10 +33,8 @@ function isEmptyResult(result: string): boolean {
 }
 
 function formatToolResult(call: ToolCall, result: string): string {
-  const paramLabel = call.arguments.url
-    ? `url: "${call.arguments.url}"`
-    : `query: "${call.arguments.query}"`;
-  return `[${call.name}] ${paramLabel}\n${result}`;
+  const param = call.arguments.url ?? call.arguments.query;
+  return `<${call.name} query="${param}">\n${result}\n</${call.name}>`;
 }
 
 export class Rewriter {
@@ -46,10 +44,16 @@ export class Rewriter {
     return this.configRepo.getModelHfUri();
   }
 
-  async rewrite(rawPrompt: string, projectDir?: string): Promise<string> {
+  async rewrite(
+    rawPrompt: string,
+    projectDir?: string,
+    onStatus?: (message: string) => void,
+  ): Promise<string> {
     const hfUri = this.configRepo.getModelHfUri();
     const contextSize = this.configRepo.getModelContextSize();
     const searchDir = projectDir ?? process.cwd();
+
+    onStatus?.("Evaluating");
 
     const systemPrompt = buildToolCallingPrompt(TOOL_DEFINITIONS);
     const raw = await generate(
@@ -67,6 +71,8 @@ export class Rewriter {
     const results: string[] = [];
 
     for (const call of calls) {
+      const param = call.arguments.url ?? call.arguments.query;
+      onStatus?.(`Called ${call.name}(${param})`);
       const result = await executeToolCall(call, searchDir, ig);
       if (!result || isEmptyResult(result)) continue;
       results.push(formatToolResult(call, result));
@@ -77,9 +83,7 @@ export class Rewriter {
     const outputs = [];
     outputs.push(rawPrompt);
     outputs.push("Context from codebase:");
-    outputs.push("```");
     outputs.push(results.join("\n\n"));
-    outputs.push("```");
 
     return outputs.join("\n\n");
   }

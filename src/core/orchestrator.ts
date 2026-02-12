@@ -3,6 +3,7 @@ import type { HistoryRepo } from "../storage/history-repo.js";
 import type { Rewriter } from "./rewriter.js";
 import { copyToClipboard } from "../output/clipboard.js";
 import { writeOutputFile } from "../output/file-writer.js";
+import ora from "ora";
 
 export class Orchestrator {
   constructor(
@@ -22,9 +23,15 @@ export class Orchestrator {
       projectDir,
     } = options;
 
-    const improved = await this.rewriter.rewrite(rawPrompt, projectDir);
+    const spinner = jsonOutput ? null : ora().start();
+    const onStatus = spinner
+      ? (message: string) => { spinner.text = message; }
+      : undefined;
 
-    console.log("\n");
+    const improved = await this.rewriter.rewrite(rawPrompt, projectDir, onStatus);
+
+    spinner?.stop();
+    console.log("");
 
     if (jsonOutput) {
       console.log(JSON.stringify({ improved }));

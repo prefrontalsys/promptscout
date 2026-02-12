@@ -62,7 +62,18 @@ promptscout ships with a Claude Code plugin that automatically enriches every pr
 ### Install the plugin
 
 ```bash
-claude plugin add https://github.com/obsfx/promptscout/tree/main/claude-plugin
+# Add the promptscout marketplace
+claude /plugin marketplace add obsfx/promptscout
+
+# Install the plugin
+claude /plugin install promptscout
+```
+
+Or in Claude Code interactive mode:
+
+```
+/plugin marketplace add obsfx/promptscout
+/plugin install promptscout
 ```
 
 Once installed, every prompt you submit in Claude Code will be automatically enriched with codebase context via the `UserPromptSubmit` hook. The plugin passes your prompt through promptscout with `--json-output --no-clipboard` and injects the result as additional context.

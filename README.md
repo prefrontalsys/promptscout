@@ -4,6 +4,9 @@ A CLI tool that enriches your coding agent prompts with codebase context using a
 
 **Designed as a Claude Code plugin.** It hooks into your prompt submission flow and adds codebase context before Claude sees it.
 
+<img width="1715" height="1230" alt="CleanShot 2026-02-13 at 02 49 39" src="https://github.com/user-attachments/assets/d37eba7d-8697-4a2a-b231-b4217b90692e" />
+
+
 ## Motivation
 
 When you ask a coding agent like Claude Code, Cursor, or Copilot to work on your codebase, the agent spends time and tokens discovering which files matter. It greps, reads, explores, all on your dime.

@@ -170,21 +170,6 @@ promptscout history show 42
 promptscout history clear
 ```
 
-### `promptscout system-prompt`
-
-View and manage the LLM system prompt that controls how prompts are classified and tools are selected.
-
-```bash
-# View current system prompt and token count
-promptscout system-prompt
-
-# Edit in $EDITOR
-promptscout system-prompt edit
-
-# Reset to default
-promptscout system-prompt reset
-```
-
 ## Examples
 
 ### Swift project (macOS audio capture tool)

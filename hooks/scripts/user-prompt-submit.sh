@@ -30,7 +30,7 @@ result=$(promptscout "$prompt" "${cli_args[@]}" 2>/dev/null) || {
 }
 
 # Extract the final improved prompt
-improved=$(echo "$result" | jq -r '.final // empty')
+improved=$(echo "$result" | jq -r '.improved // empty')
 
 if [ -z "$improved" ]; then
   exit 0

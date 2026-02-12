@@ -5,7 +5,7 @@ export function buildToolCallingPrompt(toolDefs: unknown[]): string {
 
 ${JSON.stringify(toolDefs, null, 2)}
 
-When a user mentions code, files, or technical topics, call the relevant tools.
+Your job: extract keywords from the user's prompt and call tools to find relevant code.
 
 Rules:
 - Output ONLY a JSON array: [{"name": "tool_name", "arguments": {"param": "value"}}]
@@ -18,8 +18,20 @@ Rules:
   - definition_finder: find where functions, classes, types are declared
   - import_tracer: find dependency relationships between modules
   - git_history: find recent commits that changed related code
-- If the prompt is feedback, observation, or status update (not asking to change code), output exactly: []
-- Do NOT output anything except the JSON array.`;
+- ALWAYS call tools when the prompt mentions ANY technical topic, feature, or concept — even if the user is asking a question or requesting an explanation.
+- ONLY output [] if the prompt contains no technical keywords at all (e.g., "thanks", "ok", "done").
+- Do NOT output anything except the JSON array.
+
+Examples:
+
+User: "how does the auth system work in this project?"
+[{"name":"file_finder","arguments":{"query":"auth"}},{"name":"section_finder","arguments":{"query":"login"}},{"name":"definition_finder","arguments":{"query":"auth"}},{"name":"import_tracer","arguments":{"query":"auth"}}]
+
+User: "fix the camera rotation bug"
+[{"name":"file_finder","arguments":{"query":"camera"}},{"name":"section_finder","arguments":{"query":"rotation"}},{"name":"definition_finder","arguments":{"query":"camera"}},{"name":"git_history","arguments":{"query":"rotation"}}]
+
+User: "thanks, that works"
+[]`;
 }
 
 export function parseToolCalls(output: string): ToolCall[] {

@@ -1,6 +1,6 @@
 {
   "name": "promptscout",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Enrich coding agent prompts with codebase context using a local LLM",
   "type": "module",
   "bin": {

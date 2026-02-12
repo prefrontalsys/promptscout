@@ -1,4 +1,4 @@
-import type { ToolCall } from "../../tools/codebase-tools.js";
+import type { ToolCall } from "../../tools/index.js";
 
 export function buildToolCallingPrompt(toolDefs: unknown[]): string {
   return `You are a code search assistant. You have access to the following tools:
@@ -14,7 +14,7 @@ Rules:
 - Choose the most relevant tools:
   - file_finder: discover which files relate to a topic
   - section_finder: find specific code lines
-  - definition_finder: find exported functions, classes, types, interfaces
+  - definition_finder: find function, class, type, struct definitions
   - import_tracer: find who imports a module
   - git_history: find recent commits that changed related code
   - external_link_summarizer: fetch a URL mentioned in the prompt

@@ -6,10 +6,11 @@ import {
   parseToolCalls,
 } from "../llm/prompts/tool-calling.js";
 import {
+  type ToolCall,
   TOOL_DEFINITIONS,
   executeToolCall,
   loadIgnoreFilter,
-} from "../tools/codebase-tools.js";
+} from "../tools/index.js";
 
 const TOOL_CALLING_PARAMS: InferenceParams = {
   temperature: 0.6,
@@ -24,6 +25,19 @@ const TOOL_CALLING_PARAMS: InferenceParams = {
     penalizeNewLine: false,
   },
 };
+
+const NO_RESULT_PREFIXES = ["No ", "Failed", "Unknown tool"];
+
+function isEmptyResult(result: string): boolean {
+  return NO_RESULT_PREFIXES.some((prefix) => result.startsWith(prefix));
+}
+
+function formatToolResult(call: ToolCall, result: string): string {
+  const paramLabel = call.arguments.url
+    ? `url: "${call.arguments.url}"`
+    : `query: "${call.arguments.query}"`;
+  return `[${call.name}] ${paramLabel}\n${result}`;
+}
 
 export class Rewriter {
   constructor(private configRepo: ConfigRepo) { }
@@ -51,29 +65,21 @@ export class Rewriter {
 
     const ig = loadIgnoreFilter(searchDir);
     const results: string[] = [];
+
     for (const call of calls) {
       const result = await executeToolCall(call, searchDir, ig);
-      if (
-        result &&
-        !result.startsWith("No ") &&
-        !result.startsWith("Failed") &&
-        !result.startsWith("Unknown tool")
-      ) {
-        const paramLabel = call.arguments.url
-          ? `url: "${call.arguments.url}"`
-          : `query: "${call.arguments.query}"`;
-        results.push(`[${call.name}] ${paramLabel}\n${result}`);
-      }
+      if (!result || isEmptyResult(result)) continue;
+      results.push(formatToolResult(call, result));
     }
 
     if (results.length === 0) return rawPrompt;
-    const outputs = [];
 
-    outputs.push(rawPrompt)
-    outputs.push("Context from codebase:")
-    outputs.push("```")
-    outputs.push(results.join("\n\n"))
-    outputs.push("```")
+    const outputs = [];
+    outputs.push(rawPrompt);
+    outputs.push("Context from codebase:");
+    outputs.push("```");
+    outputs.push(results.join("\n\n"));
+    outputs.push("```");
 
     return outputs.join("\n\n");
   }

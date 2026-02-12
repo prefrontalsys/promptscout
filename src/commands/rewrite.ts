@@ -12,7 +12,7 @@ export function registerRewriteCommand(program: Command, orchestrator: Orchestra
     .action(async (prompt: string, opts: Record<string, unknown>) => {
       if (!prompt.trim()) {
         console.error("Error: Prompt cannot be empty.");
-        console.error("Usage: better-prompt <prompt>");
+        console.error("Usage: promptscout <prompt>");
         process.exit(1);
       }
 

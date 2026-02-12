@@ -1,5 +1,5 @@
 {
-  "name": "better-prompt",
+  "name": "promptscout",
   "version": "1.0.0",
-  "description": "Rewrites coding agent prompts using local LLM"
+  "description": "Enriches coding agent prompts with codebase context using a local LLM"
 }

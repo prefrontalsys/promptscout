@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 export function openInEditor(initialContent: string = ""): string {
   const editor = process.env.VISUAL || process.env.EDITOR || "vi";
-  const tmpDir = mkdtempSync(join(tmpdir(), "better-prompt-"));
+  const tmpDir = mkdtempSync(join(tmpdir(), "promptscout-"));
   const tmpFile = join(tmpDir, "edit.md");
 
   writeFileSync(tmpFile, initialContent, "utf-8");

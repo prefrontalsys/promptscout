@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import {
   getLlama,
   resolveModelFile,
@@ -19,6 +20,12 @@ export async function generate(
   const modelPath = hfUri.startsWith("hf:")
     ? await resolveModelFile(hfUri, getModelDir())
     : hfUri;
+
+  if (!existsSync(modelPath)) {
+    throw new Error(
+      `Model not found at ${modelPath}. Run "promptscout setup" to download it.`,
+    );
+  }
 
   const llama = await getLlama({ logLevel: LlamaLogLevel.error });
   const model = await llama.loadModel({

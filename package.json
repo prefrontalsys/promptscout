@@ -1,10 +1,10 @@
 {
-  "name": "better-prompt",
+  "name": "promptscout",
   "version": "1.0.0",
   "description": "CLI tool that improves coding agent prompts using a local LLM",
   "type": "module",
   "bin": {
-    "better-prompt": "./dist/index.js"
+    "promptscout": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc"

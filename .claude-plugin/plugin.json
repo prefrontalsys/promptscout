@@ -1,7 +1,7 @@
 {
   "name": "promptscout",
   "description": "Enrich coding agent prompts with codebase context using a local LLM",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": {
     "name": "Omercan Balandi",
     "url": "https://github.com/obsfx"

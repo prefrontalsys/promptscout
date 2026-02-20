@@ -1,6 +1,7 @@
 import type { ProcessOptions } from "../types.js";
 import type { HistoryRepo } from "../storage/history-repo.js";
 import type { Rewriter } from "./rewriter.js";
+import type { TemplateService } from "./template-service.js";
 import { copyToClipboard } from "../output/clipboard.js";
 import { writeOutputFile } from "../output/file-writer.js";
 import ora from "ora";
@@ -9,6 +10,7 @@ export class Orchestrator {
   constructor(
     private historyRepo: HistoryRepo,
     private rewriter: Rewriter,
+    private templateService: TemplateService,
   ) {}
 
   async processPrompt(options: ProcessOptions): Promise<{
@@ -23,18 +25,21 @@ export class Orchestrator {
       projectDir,
     } = options;
 
+    const searchDir = projectDir ?? process.cwd();
+    const template = this.templateService.resolve(searchDir);
+
     const spinner = jsonOutput ? null : ora().start();
     const onStatus = spinner
       ? (message: string) => { spinner.text = message; }
       : undefined;
 
-    const improved = await this.rewriter.rewrite(rawPrompt, projectDir, onStatus);
+    const { text: improved, templateUsed } = await this.rewriter.rewrite(rawPrompt, projectDir, onStatus, template);
 
     spinner?.stop();
     console.log("");
 
     if (jsonOutput) {
-      console.log(JSON.stringify({ improved }));
+      console.log(JSON.stringify({ improved, templateUsed }));
     } else {
       console.log(improved);
     }

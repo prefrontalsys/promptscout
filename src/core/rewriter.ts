@@ -47,7 +47,8 @@ export class Rewriter {
     rawPrompt: string,
     projectDir?: string,
     onStatus?: (message: string) => void,
-  ): Promise<string> {
+    template?: string,
+  ): Promise<{ text: string; templateUsed: boolean }> {
     const hfUri = this.configRepo.getModelHfUri();
     const contextSize = this.configRepo.getModelContextSize();
     const searchDir = projectDir ?? process.cwd();
@@ -65,7 +66,10 @@ export class Rewriter {
     );
 
     const calls = parseToolCalls(raw);
-    if (calls.length === 0) return rawPrompt;
+    if (calls.length === 0) {
+      if (template) return { text: template.replace("<@prompt>", rawPrompt), templateUsed: true };
+      return { text: rawPrompt, templateUsed: false };
+    }
 
     onStatus?.(`Running ${calls.length} tool calls`);
     const settled = await Promise.all(
@@ -77,13 +81,22 @@ export class Rewriter {
     );
     const results = settled.filter((r): r is string => r !== null);
 
-    if (results.length === 0) return rawPrompt;
+    if (results.length === 0) {
+      if (template) return { text: template.replace("<@prompt>", rawPrompt), templateUsed: true };
+      return { text: rawPrompt, templateUsed: false };
+    }
 
     const outputs = [];
     outputs.push(rawPrompt);
     outputs.push("Context from codebase:");
     outputs.push(results.join("\n\n"));
 
-    return outputs.join("\n\n");
+    const assembled = outputs.join("\n\n");
+
+    if (template) {
+      return { text: template.replace("<@prompt>", assembled), templateUsed: true };
+    }
+
+    return { text: assembled, templateUsed: false };
   }
 }

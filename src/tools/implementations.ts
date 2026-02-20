@@ -8,6 +8,7 @@ import {
 const MAX_FILES = 10;
 const MAX_LINES = 20;
 const MAX_COMMITS = 10;
+const MD_PENALTY = 0.5;
 
 // Multi-language definition patterns:
 // JS/TS: export, function, class, interface, type, const, enum
@@ -27,6 +28,9 @@ function scoreFilePath(filePath: string, lowerQuery: string): number {
   let score = 1; // base score for content match
   if (basename.includes(lowerQuery)) score += 3;
   else if (lower.includes(lowerQuery)) score += 1;
+
+  if (basename.endsWith(".md")) score *= MD_PENALTY;
+
   return score;
 }
 
@@ -68,15 +72,16 @@ export function definitionFinder(query: string, dir: string): string {
   if (!output) return "No definitions found.";
 
   const lowerQuery = query.toLowerCase();
-  const filtered = output
+  const scored = output
     .split("\n")
     .filter(Boolean)
     .filter((line) => line.toLowerCase().includes(lowerQuery))
+    .map((l) => ({ line: stripDirPrefix(l, dir), score: scoreFilePath(l, lowerQuery) }))
+    .sort((a, b) => b.score - a.score)
     .slice(0, MAX_LINES);
 
-  if (filtered.length === 0) return "No matching definitions found.";
-
-  return filtered.map((l) => stripDirPrefix(l, dir)).join("\n");
+  if (scored.length === 0) return "No matching definitions found.";
+  return scored.map((s) => s.line).join("\n");
 }
 
 export function importTracer(query: string, dir: string): string {
@@ -85,10 +90,16 @@ export function importTracer(query: string, dir: string): string {
 
   if (!output) return "No matching imports found.";
 
-  const lines = output.split("\n").filter(Boolean).slice(0, MAX_LINES);
-  if (lines.length === 0) return "No matching imports found.";
+  const lowerQuery = query.toLowerCase();
+  const scored = output
+    .split("\n")
+    .filter(Boolean)
+    .map((l) => ({ line: stripDirPrefix(l, dir), score: scoreFilePath(l, lowerQuery) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_LINES);
 
-  return lines.map((l) => stripDirPrefix(l, dir)).join("\n");
+  if (scored.length === 0) return "No matching imports found.";
+  return scored.map((s) => s.line).join("\n");
 }
 
 export function gitHistory(query: string, dir: string): string {

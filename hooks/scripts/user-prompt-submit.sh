@@ -31,6 +31,7 @@ result=$(promptscout "$prompt" "${cli_args[@]}" 2>/dev/null) || {
 
 # Extract the final improved prompt
 improved=$(echo "$result" | jq -r '.improved // empty')
+template_used=$(echo "$result" | jq -r '.templateUsed // false')
 
 if [ -z "$improved" ]; then
   exit 0
@@ -39,6 +40,7 @@ fi
 # Build summary message counting results per tool
 build_summary() {
   local text="$1"
+  local tmpl_used="$2"
   local parts=()
 
   local files
@@ -66,14 +68,18 @@ build_summary() {
     return
   fi
 
-  local summary="promptscout: enriched context"
+  local summary="promptscout:"
+  if [ "$tmpl_used" = "true" ]; then
+    summary+=" (template used)"
+  fi
+  summary+=" enriched context"
   for part in "${parts[@]}"; do
     summary+=" (+${part})"
   done
   echo "$summary"
 }
 
-summary=$(build_summary "$improved")
+summary=$(build_summary "$improved" "$template_used")
 
 # Inject as additionalContext with optional systemMessage
 if [ -n "$summary" ]; then

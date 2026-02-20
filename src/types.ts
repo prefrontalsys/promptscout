@@ -13,6 +13,13 @@ export interface ConfigEntry {
   value: string;
 }
 
+export interface TemplateEntry {
+  directory: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface InferenceParams {
   temperature: number;
   topP: number;

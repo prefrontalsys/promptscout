@@ -15,3 +15,10 @@ export const config = sqliteTable("config", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+export const templates = sqliteTable("templates", {
+  directory: text("directory").primaryKey(),
+  content: text("content").notNull(),
+  created_at: text("created_at").default(sql`(datetime('now'))`),
+  updated_at: text("updated_at").default(sql`(datetime('now'))`),
+});

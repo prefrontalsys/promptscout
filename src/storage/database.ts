@@ -35,6 +35,19 @@ function migrate(database: Database.Database): void {
       PRAGMA user_version = 2;
     `);
   }
+
+  if (version < 3) {
+    database.exec(`
+      CREATE TABLE IF NOT EXISTS templates (
+        directory TEXT PRIMARY KEY,
+        content TEXT NOT NULL,
+        created_at TEXT DEFAULT (datetime('now')),
+        updated_at TEXT DEFAULT (datetime('now'))
+      );
+
+      PRAGMA user_version = 3;
+    `);
+  }
 }
 
 export function getDatabase(): Database.Database {

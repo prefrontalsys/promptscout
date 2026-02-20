@@ -181,6 +181,70 @@ promptscout history show 42
 promptscout history clear
 ```
 
+## Templates
+
+promptscout supports per-directory prompt templates. A template wraps your enriched prompt with custom instructions using the `<@prompt>` placeholder.
+
+### Example template
+
+```
+You are an expert developer working on a React Native project.
+Always prefer functional components and hooks.
+
+<@prompt>
+
+Follow the project's ESLint rules and use TypeScript strictly.
+```
+
+When you run `promptscout "fix the navigation bug"`, the output becomes:
+
+```
+You are an expert developer working on a React Native project.
+Always prefer functional components and hooks.
+
+fix the navigation bug
+
+Context from codebase:
+<file_finder query="navigation">
+...
+</file_finder>
+
+Follow the project's ESLint rules and use TypeScript strictly.
+```
+
+### Managing templates
+
+```bash
+# Create or edit a template for the current directory (opens $EDITOR)
+promptscout template edit
+
+# Create or edit a template for a specific directory
+promptscout template edit -d /path/to/project
+
+# View the template for a directory
+promptscout template show -d /path/to/project
+
+# Delete a template
+promptscout template delete -d /path/to/project
+
+# List all templates
+promptscout template list
+```
+
+Templates are stored in the promptscout database (`~/.promptscout/promptscout.db`), not in your project files.
+
+### Directory resolution
+
+Templates use nearest-ancestor matching. If you set a template for `/projects/monorepo`, it also applies when running from `/projects/monorepo/packages/api` or any subdirectory, unless that subdirectory has its own template.
+
+### Claude Code plugin
+
+When the Claude Code plugin detects a template was used, it shows an indicator in the status message:
+
+```
+promptscout: (template used) enriched context (+5 files) (+3 sections)
+```
+
 ## Examples
 
 ### Swift project (macOS audio capture tool)

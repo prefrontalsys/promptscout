@@ -12,6 +12,25 @@ if [ -z "$prompt" ]; then
   exit 0
 fi
 
+# Skip system-generated noise (XML tags from hooks/teammates/bash)
+if echo "$prompt" | grep -qE '^\s*<(task-notification|teammate-message|bash-stdout|bash-stderr|bash-input|system-reminder)'; then
+  exit 0
+fi
+
+# Skip short prompts (<=10 words) — affirmatives, micro-directives, pings
+word_count=$(echo "$prompt" | wc -w | tr -d ' ')
+if [ "$word_count" -le 10 ]; then
+  # But allow longer-looking short prompts that contain a URL or file path
+  if ! echo "$prompt" | grep -qE '(https?://|/[A-Za-z])'; then
+    exit 0
+  fi
+fi
+
+# Skip agent delegation phrases (any length)
+if echo "$prompt" | grep -qiE '^(have (a )?(doer|worker|thinker)|spin up|spawn)'; then
+  exit 0
+fi
+
 # Check if promptscout CLI is available
 if ! command -v promptscout &>/dev/null; then
   exit 0
